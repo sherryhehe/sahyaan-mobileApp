@@ -35,12 +35,12 @@ const FilterModal = ({ isVisible, onClose, onApplyFilters, searchResults }) => {
   const fetchUniqueBrands = async (searchResults) => {
     try {
       const brandPromises = searchResults.map(async (item) => {
-        const brandData = await fetchBrandData(item.brand);
-        return brandData.name;
+        // const brandData = await fetchBrandData(item.brand);
+        return item.brand;
       });
-
-      const brands = await Promise.all(brandPromises);
-
+      //
+      // const brands = await Promise.all(brandPromises);
+      //
       const uniqueBrands = [...new Set(brands)];
 
       return uniqueBrands;
@@ -65,7 +65,7 @@ const FilterModal = ({ isVisible, onClose, onApplyFilters, searchResults }) => {
 
       const uniqueCategories = [...new Set(categories)].filter(
         (category) =>
-          category !== undefined && category !== null && category !== ""
+          category !== undefined && category !== null && category !== "",
       );
 
       return uniqueCategories;
@@ -308,13 +308,13 @@ const Search = () => {
         async ({ data, lastDoc, hasMore }) => {
           const filteredData = await applyFilters(
             [...data, ...searchResults],
-            filters
+            filters,
           );
 
           setSearchResults(filteredData);
           setLastDoc(lastDoc);
           setHasMore(hasMore);
-        }
+        },
       );
     } catch (error) {
       console.error("Error performing search: ", error);

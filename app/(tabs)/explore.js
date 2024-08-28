@@ -43,7 +43,7 @@ export default function explore() {
     try {
       console.log(user);
       const data = await getRecommendationData(
-        user.interest && user.interest.length > 0 ? user.interest : ["PQR"]
+        user.interest && user.interest.length > 0 ? user.interest : ["PQR"],
       );
       console.log(data.length);
       if (data && Array.isArray(data)) {
@@ -104,6 +104,7 @@ export default function explore() {
   });
 
   const renderItem = ({ item, index }) => {
+    console.log(item.price);
     return (
       <View
         style={{
@@ -232,14 +233,14 @@ export default function explore() {
                         setUserData(true);
                         ToastAndroid.show(
                           "Successfully removed to wishlist",
-                          ToastAndroid.SHORT
+                          ToastAndroid.SHORT,
                         );
                         // You can add some user feedback here, like a toast notification
                         // //  console.log("Product added to cart");
                       } catch (error) {
                         ToastAndroid.show(
                           "Couldnt Add product to wishlist",
-                          ToastAndroid.SHORT
+                          ToastAndroid.SHORT,
                         );
                         console.error("Error!", error);
                         // Handle the error, maybe show an error message to the user
@@ -261,14 +262,14 @@ export default function explore() {
                         setUserData(true);
                         ToastAndroid.show(
                           "Successfully added to wishlist",
-                          ToastAndroid.SHORT
+                          ToastAndroid.SHORT,
                         );
                         // You can add some user feedback here, like a toast notification
                         // //  console.log("Product added to cart");
                       } catch (error) {
                         ToastAndroid.show(
                           "Couldnt Add product to wishlist",
-                          ToastAndroid.SHORT
+                          ToastAndroid.SHORT,
                         );
                         console.error("Error!", error);
                         // Handle the error, maybe show an error message to the user

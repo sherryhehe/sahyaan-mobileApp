@@ -30,18 +30,17 @@ export default fetchProductData = async (productId) => {
     }
 
     // Fetch brand data
-    if (productData.brand) {
-      productData.brandId = productData.brand;
-      const brandData = await fetchBrandData(productData.brand);
-      productData.brand = brandData ? brandData.name : "Unknown Brand";
-    }
+    //if (productData.brand) {
+    //productData.brandId = productData.brand;
+    // const brandData = await fetchBrandData(productData.brand);
+    // productData.brand = brandData ? brandData.name : "Unknown Brand";
+    //}
 
     // Fetch image URLs
     if (productData.images && Array.isArray(productData.images)) {
       const imagePromises = productData.images.map(
-        (imagePath) =>
-          // getFileUrl(imagePath)
-          "https://firebasestorage.googleapis.com/v0/b/sahyan-shop.appspot.com/o/images%2Fproducts%2FDj0pDUbrxhFyOhbnb3Jt%2Fimage.jpg?alt=media&token=6bde6a2e-cde3-497e-9836-eac937ad43eb"
+        (imagePath) => getFileUrl(imagePath),
+        //"https://firebasestorage.googleapis.com/v0/b/sahyan-shop.appspot.com/o/images%2Fproducts%2FDj0pDUbrxhFyOhbnb3Jt%2Fimage.jpg?alt=media&token=6bde6a2e-cde3-497e-9836-eac937ad43eb"
       );
       productData.imageUrls = await Promise.all(imagePromises);
     }
@@ -57,7 +56,7 @@ export default fetchProductData = async (productId) => {
 export const getDataPaginated = async (
   collectionName,
   pageSize = 20,
-  lastDoc = null
+  lastDoc = null,
 ) => {
   try {
     const baseQuery = collection(db, collectionName);

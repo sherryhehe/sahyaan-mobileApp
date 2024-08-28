@@ -29,9 +29,9 @@ const FilterModal = ({ isVisible, onClose, onApplyFilters, searchResults }) => {
     const uniqueBrands = [
       ...new Set(
         searchResults.map(async (item) => {
-          const brandData = await fetchBrandData(item.brand);
-          return brandData.name;
-        })
+          // const brandData = await fetchBrandData(item.brand);
+          return item.brand;
+        }),
       ),
     ];
     setCategories(uniqueCategories);
