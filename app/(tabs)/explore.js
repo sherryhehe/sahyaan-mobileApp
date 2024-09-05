@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   View,
   TouchableOpacity,
@@ -8,14 +8,14 @@ import {
   ImageBackground,
   StyleSheet,
   ToastAndroid,
-  ScrollView,
+  RefreshControl,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { CustomText as Text } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
-import { getIDData, getRecommendationData } from "@/firebase/FirestoreService";
-const { width, height } = Dimensions.get("window");
+import { getRecommendationData } from "@/functions/product";
+const { height } = Dimensions.get("window");
 import { useUser } from "@/firebase/UserContext";
 import { addTowishList, removeFromWishlist } from "@/functions/users";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -24,11 +24,6 @@ import Loading from "@/components/Loading";
 
 export default function explore() {
   const { user, setUserData } = useUser();
-  useEffect(() => {
-    if (user) {
-      console.log(typeof user.interests);
-    }
-  }, [user]);
 
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -38,53 +33,100 @@ export default function explore() {
   const [allDataLoaded, setAllDataLoaded] = useState(false);
   const INITIAL_BATCH_SIZE = 10;
   const BATCH_SIZE = 5;
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [lastLoadedIndex, setLastLoadedIndex] = useState(0);
+  const allDataRef = useRef([]);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setAllDataLoaded(false);
+    setLastLoadedIndex(0);
+    fetchInitialData().finally(() => setRefreshing(false));
+  }, [user, fetchInitialData]);
+  const fetchInitialData = useCallback(async () => {
+    const startTime = Date.now();
+    console.log("fetchInitialData started");
 
-  async function fetchInitialData() {
-    try {
-      console.log(user);
-      const data = await getRecommendationData(
-        user.interest && user.interest.length > 0 ? user.interest : ["PQR"],
+    // try {
+    const interests =
+      user.interest && user.interest.length > 0 ? user.interest : ["PQR"];
+
+    console.log(`Interests determined in ${Date.now() - startTime}ms`);
+
+    const recommendationStartTime = Date.now();
+    const data = await getRecommendationData(interests);
+    console.log(
+      `getRecommendationData took ${Date.now() - recommendationStartTime}ms`,
+    );
+    console.log(data);
+    allDataRef.current = data;
+
+    if (data && Array.isArray(data)) {
+      const sliceStartTime = Date.now();
+      const initialBatch = data.slice(0, INITIAL_BATCH_SIZE);
+      console.log(
+        `Slicing initial batch took ${Date.now() - sliceStartTime}ms`,
       );
-      console.log(data.length);
-      if (data && Array.isArray(data)) {
-        const initialBatch = data.slice(0, INITIAL_BATCH_SIZE);
-        const detailedDataPromises = initialBatch.map(fetchProductData);
-        const detailedData = await Promise.all(detailedDataPromises);
-        setExploreData(detailedData);
 
-        // Load the rest of the data in the background
-        loadRemainingData(data.slice(INITIAL_BATCH_SIZE));
-      }
-    } catch (error) {
-      console.error("Error fetching initial data:", error);
+      const mappingStartTime = Date.now();
+      const detailedDataPromises = initialBatch.map(fetchProductData);
+      console.log(
+        `Mapping fetchProductData took ${Date.now() - mappingStartTime}ms`,
+      );
+
+      const promiseAllStartTime = Date.now();
+      const detailedData = await Promise.all(detailedDataPromises);
+      console.log(
+        `Promise.all for detailed data took ${Date.now() - promiseAllStartTime}ms`,
+      );
+      // console.log(detailedData);
+      const setStateStartTime = Date.now();
+      setExploreData(detailedData);
+      setLastLoadedIndex(INITIAL_BATCH_SIZE);
+      console.log(`Setting state took ${Date.now() - setStateStartTime}ms`);
     }
-  }
+    // } catch (error) {
+    //   console.error("Error fetching initial data:", error);
+    // }
 
-  async function loadRemainingData(remainingData) {
+    console.log(
+      `Total fetchInitialData execution time: ${Date.now() - startTime}ms`,
+    );
+    console.log();
+  }, [user, fetchProductData]);
+
+  const loadMoreData = useCallback(async () => {
+    if (loadingMore || allDataLoaded) return;
+
+    setLoadingMore(true);
     try {
-      for (let i = 0; i < remainingData.length; i += BATCH_SIZE) {
-        const batch = remainingData.slice(i, i + BATCH_SIZE);
-        const detailedDataPromises = batch.map(fetchProductData);
-        const detailedData = await Promise.all(detailedDataPromises);
-        setExploreData((prevData) => [...prevData, ...detailedData]);
+      const nextBatch = allDataRef.current.slice(
+        lastLoadedIndex,
+        lastLoadedIndex + BATCH_SIZE,
+      );
+      if (nextBatch.length === 0) {
+        setAllDataLoaded(true);
+        return;
       }
-      setAllDataLoaded(true);
+
+      const detailedDataPromises = nextBatch.map(fetchProductData);
+      const newData = await Promise.all(detailedDataPromises);
+
+      setExploreData((prevData) => [...prevData, ...newData]);
+      setLastLoadedIndex((prevIndex) => prevIndex + BATCH_SIZE);
     } catch (error) {
-      console.error("Error loading remaining data:", error);
+      console.error("Error loading more data:", error);
+    } finally {
+      setLoadingMore(false);
     }
-  }
+  }, [loadingMore, allDataLoaded, lastLoadedIndex, fetchProductData]);
 
   useEffect(() => {
-    async function init() {
-      setLoading(true);
-
-      await fetchInitialData();
-      setLoading(false);
-    }
     if (user) {
-      init();
+      setLoading(true);
+      fetchInitialData().finally(() => setLoading(false));
     }
-  }, [user]);
+  }, [user, fetchInitialData]);
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
@@ -98,13 +140,13 @@ export default function explore() {
         //   index: currentIndex,
         //   animated: true,
         // });
-        router.push(`/brand/${exploreData[currentIndex].brandId}`);
+        router.push(`/seller/${exploreData[currentIndex].seller}`);
       }
     },
   });
 
   const renderItem = ({ item, index }) => {
-    console.log(item.price);
+    console.log(item);
     return (
       <View
         style={{
@@ -133,7 +175,7 @@ export default function explore() {
         >
           <ImageBackground
             source={{
-              uri: "https://firebasestorage.googleapis.com/v0/b/sahyan-shop.appspot.com/o/images%2Fproducts%2FDj0pDUbrxhFyOhbnb3Jt%2Fimage.jpg?alt=media&token=6bde6a2e-cde3-497e-9836-eac937ad43eb",
+              uri: item.imageUrls[0],
             }}
             style={{
               width: "100%",
@@ -180,9 +222,6 @@ export default function explore() {
                   {item.name}
                 </Text>
                 <Text
-                  onTouchEnd={() => {
-                    router.push(`/brand/${item.brandId}`);
-                  }}
                   style={{
                     fontSize: 26,
                     color: Colors.bg,
@@ -351,15 +390,41 @@ export default function explore() {
         ref={flatListRef}
         data={exploreData}
         renderItem={renderItem}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(_, index) => index.toString()}
         pagingEnabled
         showsVerticalScrollIndicator={false}
         snapToInterval={height}
         snapToAlignment="start"
         horizontal={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         decelerationRate={1}
         disableIntervalMomentum={true}
         initialNumToRender={INITIAL_BATCH_SIZE}
+        onEndReached={loadMoreData}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={() =>
+          loadingMore ? (
+            <View style={{ padding: 10, alignItems: "center" }}>
+              <Text style={{ fontFamily: "thin" }}>Loading more...</Text>
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          <View
+            style={{
+              flex: 1,
+              width: "100%",
+              height: height,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: Colors.bg,
+            }}
+          >
+            <Text>Check Home page for personalized data</Text>
+          </View>
+        }
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
       />

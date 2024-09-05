@@ -1,4 +1,10 @@
-import { View, ScrollView, TouchableOpacity, TextInput } from "react-native";
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Image,
+} from "react-native";
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { CustomText as Text } from "@/components/CustomText";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,6 +27,7 @@ const Cart = () => {
   const userRef = useRef(user);
   const [loading, setLoading] = useState(true);
 
+  const router = useRouter();
   useEffect(() => {
     cartDataRef.current = cartData;
   }, [cartData]);
@@ -40,14 +47,17 @@ const Cart = () => {
   };
 
   useEffect(() => {
-    // // //  console.log(Object.values(prices));
-
-    const newTotalPrice = Object.values(prices).reduce(
-      (sum, price) => sum + price,
-      0
-    );
-    setTotalPrice(newTotalPrice);
-  }, [prices]);
+    console.log(prices);
+    if (Object.keys(prices).length === 0) {
+      setTotalPrice(0);
+    } else {
+      const newTotalPrice = Object.values(prices).reduce(
+        (sum, price) => sum + price,
+        0,
+      );
+      setTotalPrice(newTotalPrice);
+    }
+  }, [prices, cartData]);
 
   useFocusEffect(
     useCallback(() => {
@@ -56,24 +66,33 @@ const Cart = () => {
         //  console.log("exit");
         updateCartInFirebase();
       };
-    }, [])
+    }, []),
   );
 
   useFocusEffect(
     useCallback(() => {
-      // // //  console.log();
-
       if (user) {
-        //  console.log("init", user.cart);
         setLoading(true);
         setCartData(user.cart);
+
+        const fetchPrices = async () => {
+          const newPrices = {};
+          for (const item of user.cart) {
+            const productData = await fetchProductData(item.id);
+            const variantKey = `${item.id}-${JSON.stringify(item.variants)}`;
+            newPrices[variantKey] = item.count * productData.price;
+          }
+          setPrices(newPrices);
+        };
+        fetchPrices();
         setLoading(false);
       }
-    }, [user]) // Empty dependency array
+    }, [user]),
   );
 
   const clearCart = () => {
     setCartData([]);
+    setPrices({});
   };
   if (loading) {
     return <Loading />;
@@ -141,22 +160,44 @@ const Cart = () => {
           borderTopWidth: 0.5,
         }}
       >
-        <Text
-          style={{
-            fontFamily: "bold",
-            fontSize: 20,
-          }}
-        >
-          Total:
-        </Text>
-        <Text
-          style={{
-            fontFamily: "bold",
-            fontSize: 20,
-          }}
-        >
-          $ {totalPrice.toFixed(2)}
-        </Text>
+        <View style={{ display: "flex", flexDirection: "column" }}>
+          <Text
+            style={{
+              fontFamily: "bold",
+              fontSize: 20,
+            }}
+          >
+            Total:
+          </Text>
+          <Text
+            style={{
+              fontFamily: "bold",
+              fontSize: 20,
+            }}
+          >
+            $ {totalPrice.toFixed(2)}
+          </Text>
+        </View>
+        {cartData && cartData.length > 0 && (
+          <TouchableOpacity
+            onPress={() => {
+              router.push("checkout");
+            }}
+            style={{
+              backgroundColor: Colors.primary,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 12,
+              minWidth: 200,
+              borderRadius: 4,
+            }}
+          >
+            <Text style={{ color: Colors.bg, fontFamily: "semi" }}>
+              Checkout
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -175,37 +216,69 @@ const CartItem = ({ item, cartData, setCartData, setPrices }) => {
       setItemData(data);
       setCount(item.count);
       setvariants(item.variants);
-      //  console.log("Item", item.variants);
+      const variantKey = getVariantKey(item);
       setPrices((prev) => ({
         ...prev,
-        [item.id]: item.count * data.price,
+        [variantKey]: item.count * data.price,
       }));
     });
   }, [item]);
+
+  const getVariantKey = (item) => {
+    const variantKey = `${item.id}-${JSON.stringify(item.variants)}`;
+    return variantKey;
+  };
 
   const updateCount = (newCount) => {
     setCount(newCount);
     const updatedCartData = cartData
       .map((cartItem) =>
-        cartItem.id === item.id ? { ...cartItem, count: newCount } : cartItem
+        cartItem.id === item.id &&
+        JSON.stringify(cartItem.variants) === JSON.stringify(item.variants)
+          ? { ...cartItem, count: newCount }
+          : cartItem,
       )
       .filter((cartItem) => cartItem.count > 0);
     setCartData(updatedCartData);
+    const variantKey = getVariantKey(item);
     setPrices((prev) => ({
       ...prev,
-      [item.id]: item.count * itemData.price,
+      [variantKey]: newCount * itemData.price,
     }));
   };
 
   const removeItem = () => {
-    const updatedCartData = cartData.filter((cartItem) => cartItem !== item);
+    const updatedCartData = cartData.filter(
+      (cartItem) =>
+        !(
+          cartItem.id === item.id &&
+          JSON.stringify(cartItem.variants) === JSON.stringify(item.variants)
+        ),
+    );
     setCartData(updatedCartData);
+    const variantKey = getVariantKey(item);
     setPrices((prev) => {
-      const { [item.id]: removed, ...rest } = prev;
+      const { [variantKey]: removed, ...rest } = prev;
+      console.log("prices", rest);
       return rest;
     });
   };
   const router = useRouter();
+  if (!itemData) {
+    return (
+      <View
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          padding: 4,
+          borderWidth: 0.7,
+          borderColor: Colors.primary,
+          borderRadius: 8,
+          gap: 8,
+        }}
+      />
+    );
+  }
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -229,7 +302,9 @@ const CartItem = ({ item, cartData, setCartData, setPrices }) => {
           borderRadius: 8,
           flex: 0.4,
         }}
-      ></View>
+      >
+        <Image source={{ uri: itemData.imageUrls[0] }} />
+      </View>
       <View
         style={{
           paddingVertical: 4,
@@ -241,6 +316,7 @@ const CartItem = ({ item, cartData, setCartData, setPrices }) => {
       >
         <View
           style={{
+            width: "100%",
             display: "flex",
             flexDirection: "row",
             justifyContent: "space-between",
@@ -250,11 +326,20 @@ const CartItem = ({ item, cartData, setCartData, setPrices }) => {
             style={{
               fontFamily: "bold",
               fontSize: 20,
+              flex: 0.65,
             }}
+            numberOfLines={2}
           >
             {itemData && itemData.name}
           </Text>
-          <Text style={{ fontFamily: "bold", fontSize: 17 }}>
+          <Text
+            style={{
+              fontFamily: "bold",
+              fontSize: 17,
+              flex: 0.35,
+              textAlign: "right",
+            }}
+          >
             $ {itemData && itemData.price.toFixed(2)}
           </Text>
         </View>

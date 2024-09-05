@@ -177,27 +177,6 @@ const HomeItemTile = ({ id }) => {
             >
               {itemData.name}
             </Text>
-            <View
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                gap: 2,
-                alignItems: "start",
-              }}
-            >
-              <AntDesign name="star" size={12} color={Colors.text} />
-              {!loading && itemData && itemData.rating && (
-                <Text
-                  style={{
-                    fontFamily: "regular",
-                    size: 12,
-                    color: Colors.text,
-                  }}
-                >
-                  {itemData.rating[0].toFixed(1)}
-                </Text>
-              )}
-            </View>
           </View>
         )}
         {loading ? (
@@ -235,3 +214,25 @@ const HomeItemTile = ({ id }) => {
 };
 
 export default HomeItemTile;
+
+// <View
+//   style={{
+//     display: "flex",
+//     flexDirection: "row",
+//     gap: 2,
+//     alignItems: "start",
+//   }}
+// >
+//   <AntDesign name="star" size={12} color={Colors.text} />
+//   {!loading && itemData && itemData.rating && (
+//     <Text
+//       style={{
+//         fontFamily: "regular",
+//         size: 12,
+//         color: Colors.text,
+//       }}
+//     >
+//       {itemData.rating[0].toFixed(1)}
+//     </Text>
+//   )}
+// </View>;

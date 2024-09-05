@@ -8,7 +8,7 @@ const USER_EXPIRY = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
 class CacheService {
   constructor() {
     this.memoryCache = {
-      brands: new Map(),
+      seller: new Map(),
       products: new Map(),
       users: new Map(), // Added users cache
     };
@@ -39,11 +39,11 @@ class CacheService {
   async set(key, value, type) {
     const expiry =
       Date.now() +
-      (type === "brands"
+      (type === "seller"
         ? BRAND_EXPIRY
         : type === "products"
-        ? PRODUCT_EXPIRY
-        : USER_EXPIRY);
+          ? PRODUCT_EXPIRY
+          : USER_EXPIRY);
 
     // Update memory cache
     this.memoryCache[type].set(key, { value, expiry });
@@ -51,7 +51,7 @@ class CacheService {
     // Update AsyncStorage
     await AsyncStorage.setItem(
       `${type}_${key}`,
-      JSON.stringify({ value, expiry })
+      JSON.stringify({ value, expiry }),
     );
   }
 
@@ -65,13 +65,13 @@ class CacheService {
 
   async clearAll() {
     // Clear memory cache
-    this.memoryCache.brands.clear();
+    this.memoryCache.seller.clear();
     this.memoryCache.products.clear();
 
     // Clear AsyncStorage
     const keys = await AsyncStorage.getAllKeys();
     const cacheKeys = keys.filter(
-      (key) => key.startsWith("brands_") || key.startsWith("products_")
+      (key) => key.startsWith("seller_") || key.startsWith("products_"),
     );
     await AsyncStorage.multiRemove(cacheKeys);
   }

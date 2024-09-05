@@ -9,6 +9,7 @@ import {
   setDoc,
   query,
   where,
+  limit,
 } from "firebase/firestore";
 
 export const addData = async (collectionName, data) => {
@@ -23,7 +24,7 @@ export const addDataByID = async (
   collectionName,
   docId,
   data,
-  update = true
+  update = true,
 ) => {
   try {
     const docRef = doc(db, collectionName, docId);
@@ -56,58 +57,6 @@ export const getData = async (collectionName) => {
     return [];
   }
 };
-
-export const getRecommendationData = async (userInterests) => {
-  const queries = [];
-  console.log(userInterests);
-  // Search in name field
-  for (const interest of userInterests) {
-    const q = query(
-      collection(db, "products"),
-      where("name", ">=", interest),
-      where("name", "<=", interest + "\uf8ff")
-    );
-    queries.push(await getDocs(q));
-  }
-
-  // Search in categories field
-  const categoriesQuery = query(
-    collection(db, "products"),
-    where("category", "array-contains-any", userInterests)
-  );
-  queries.push(await getDocs(categoriesQuery));
-
-  // Search in keywords field
-  const keywordsQuery = query(
-    collection(db, "products"),
-    where("keywords", "array-contains-any", userInterests)
-  );
-  queries.push(await getDocs(keywordsQuery));
-
-  // Search in description field
-  for (const interest of userInterests) {
-    const q = query(
-      collection(db, "products"),
-      where("shortDescription", ">=", interest),
-      where("shortDescription", "<=", interest + "\uf8ff")
-    );
-    queries.push(await getDocs(q));
-  }
-
-  // Execute all queries
-  const results = await Promise.all(queries);
-
-  // Combine and deduplicate results
-  const productSet = new Set();
-  results.forEach((result) => {
-    result.docs.forEach((doc) => {
-      productSet.add(doc.id);
-    });
-  });
-
-  return Array.from(productSet);
-};
-
 export const getIDData = async (collectionName, queryParams = []) => {
   try {
     let q;
@@ -139,22 +88,23 @@ export const getIDData = async (collectionName, queryParams = []) => {
 };
 
 export const queryDoc = async (collectionName, docId) => {
-  try {
-    const docRef = doc(db, collectionName, docId);
-    const docSnap = await getDoc(docRef);
+  // try {
 
-    if (docSnap.exists()) {
-      // //  console.log({ id: docSnap.id, ...docSnap.data() });
-      return { id: docSnap.id, ...docSnap.data() };
-    } else {
-      // //  console.log("No such document!");
-      return null;
-    }
-  } catch (error) {
-    // //  console.log({ collectionName, docId });
-    console.error("Error getting document:", error);
+  const docRef = doc(db, collectionName, docId);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    // //  console.log({ id: docSnap.id, ...docSnap.data() });
+    return { id: docSnap.id, ...docSnap.data() };
+  } else {
+    // //  console.log("No such document!");
     return null;
   }
+  // } catch (error) {
+  //   // //  console.log({ collectionName, docId });
+  //   console.error("Error getting document:", error);
+  //   return null;
+  // }
 };
 
 export const deleteData = async (collection, id) => {

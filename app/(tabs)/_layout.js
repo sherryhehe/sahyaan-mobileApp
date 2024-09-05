@@ -2,7 +2,16 @@ import { Colors } from "@/constants/Colors";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
+import Home from "@/assets/images/tabs/home.png";
+import HomeO from "@/assets/images/tabs/home-o.png";
+import User from "@/assets/images/tabs/user.png";
+import UserO from "@/assets/images/tabs/user-o.png";
 
+import Explore from "@/assets/images/tabs/explore.png";
+import ExploreO from "@/assets/images/tabs/explore-o.png";
+import Cart from "@/assets/images/tabs/trolley.png";
+import CartO from "@/assets/images/tabs/trolley-o.png";
+import { Image } from "react-native";
 export default function TabLayout() {
   return (
     <Tabs
@@ -10,7 +19,8 @@ export default function TabLayout() {
         tabBarItemStyle: {
           marginVertical: 4,
         },
-        tabBarStyle: { elevation: 0 },
+        tabBarShowLabel: false,
+        tabBarStyle: { elevation: 0, backgroundColor: Colors.bg },
 
         tabBarActiveTintColor: Colors.primary,
         headerShown: false,
@@ -22,39 +32,82 @@ export default function TabLayout() {
         name="home"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "home" : "home-outline"}
-              color={color}
-              size={24}
-            />
-          ),
+
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <Image
+                source={Home}
+                tintColor={color}
+                style={{ width: 22, height: 22 }}
+              />
+            ) : (
+              <Image
+                source={HomeO}
+                tintColor={color}
+                style={{ width: 22, height: 22 }}
+              />
+            ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
           title: "Explore",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "compass" : "compass-outline"}
-              size={24}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <Image
+                source={Explore}
+                tintColor={color}
+                style={{ width: 22, height: 22 }}
+              />
+            ) : (
+              <Image
+                source={ExploreO}
+                tintColor={color}
+                style={{ width: 22, height: 22 }}
+              />
+            ),
         }}
       />
       <Tabs.Screen
         name="cart"
         options={{
           title: "Cart",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "cart" : "cart-outline"}
-              size={24}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <Image
+                source={Cart}
+                tintColor={color}
+                style={{ width: 24, height: 24 }}
+              />
+            ) : (
+              <Image
+                tintColor={color}
+                source={CartO}
+                style={{ width: 24, height: 24 }}
+              />
+            ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: "Account",
+          tabBarIcon: ({ color, focused }) =>
+            focused ? (
+              <Image
+                source={User}
+                tintColor={color}
+                style={{ width: 22, height: 22 }}
+              />
+            ) : (
+              <Image
+                tintColor={color}
+                source={UserO}
+                style={{ width: 22, height: 22 }}
+              />
+            ),
         }}
       />
     </Tabs>

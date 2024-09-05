@@ -40,8 +40,18 @@ const Product = () => {
     try {
       const prodData = await fetchProductData(id);
       setData(prodData);
-      await addToInterest(user.id, prodData.name);
-      setUserData(true)
+      let isUpdated;
+
+      await addToInterest(user.id, prodData.name).then((update) => {
+        isUpdated = update;
+      });
+      await addToInterest(user.id, prodData.keywords).then((update) => {
+        if (!isUpdated) {
+          isUpdated = update;
+        }
+      });
+      setUserData(isUpdated);
+
       const initialvariants = {};
       prodData.variants.forEach((v) => {
         initialvariants[v.name] = v.vals[0];
@@ -79,7 +89,7 @@ const Product = () => {
       // You can add some user feedback here, like a toast notification
       // //  console.log("Product added to cart");
     } catch (error) {
-      console.error("Failed to add product to cart", error);
+      // console.error("Failed to add product to cart", error);
       ToastAndroid.show("Couldnt Add product to cart", ToastAndroid.SHORT);
       // Handle the error, maybe show an error message to the user
     }
@@ -252,6 +262,11 @@ const Product = () => {
               />
             );
           })}
+          <Shipping
+            shippingType={data.deliveryTime}
+            cost={data.deliveryCost}
+            cur={data.currency}
+          />
         </View>
       </ScrollView>
       <View
@@ -326,6 +341,71 @@ const Product = () => {
 
 export default Product;
 
+const Shipping = ({ shippingType, cost, cur }) => {
+  const [state, setState] = useState(false);
+  return (
+    <View
+      style={{
+        width: "100%",
+        borderWidth: 0.5,
+        borderColor: Colors.primary,
+        minHeight: 50,
+        borderRadius: 20,
+        paddingHorizontal: 20,
+        marginTop: 10,
+      }}
+    >
+      <TouchableOpacity
+        onPress={() => {
+          setState((prev) => !prev);
+        }}
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 50,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "light",
+            fontSize: 18,
+          }}
+        >
+          Shipping
+        </Text>
+
+        <MaterialIcons
+          name={state ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+          size={24}
+          color="black"
+        />
+      </TouchableOpacity>
+      {state && (
+        <View class="flex flex-col gap-2">
+          <Text
+            style={{
+              fontFamily: "light",
+              fontSize: 18,
+            }}
+          >
+            Shipping Time: {shippingType}
+          </Text>
+
+          <Text
+            style={{
+              fontFamily: "light",
+              fontSize: 18,
+            }}
+          >
+            Shipping Cost: {cur} {cost}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+};
 const Variant = ({ variant, setvariant, variants }) => {
   const updateVar = (varVal) => {
     setvariant((prev) => ({

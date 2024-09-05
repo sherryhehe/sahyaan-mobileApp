@@ -1,7 +1,7 @@
 // DataService.js
 import { queryDoc, getIDData } from "@/firebase/FirestoreService";
 import { getFileUrl } from "@/firebase/StorageService";
-import fetchBrandData from "./brand";
+// import fetchBrandData from "./brand";
 import { cacheService } from "@/CacheService";
 
 import { db } from "@/firebase/firebase";
@@ -15,42 +15,37 @@ import {
 } from "firebase/firestore";
 
 export default fetchProductData = async (productId) => {
-  try {
-    const cachedProduct = await cacheService.get(productId, "products");
-    // // //  console.log(`Cache ${cachedProduct}`);
-    if (cachedProduct) {
-      // // //  console.log("return cache");
-      return cachedProduct;
-    }
+  const cachedProduct = await cacheService.get(productId, "products");
+  // // //  console.log(`Cache ${cachedProduct}`);
+  if (cachedProduct) {
+    // // //  console.log("return cache");
+    return cachedProduct;
+  }
 
-    const productData = await queryDoc("products", productId);
-    if (!productData) {
-      // //  console.log("Product not found");
-      return null;
-    }
-
-    // Fetch brand data
-    //if (productData.brand) {
-    //productData.brandId = productData.brand;
-    // const brandData = await fetchBrandData(productData.brand);
-    // productData.brand = brandData ? brandData.name : "Unknown Brand";
-    //}
-
-    // Fetch image URLs
-    if (productData.images && Array.isArray(productData.images)) {
-      const imagePromises = productData.images.map(
-        (imagePath) => getFileUrl(imagePath),
-        //"https://firebasestorage.googleapis.com/v0/b/sahyan-shop.appspot.com/o/images%2Fproducts%2FDj0pDUbrxhFyOhbnb3Jt%2Fimage.jpg?alt=media&token=6bde6a2e-cde3-497e-9836-eac937ad43eb"
-      );
-      productData.imageUrls = await Promise.all(imagePromises);
-    }
-    await cacheService.set(productId, productData, "products");
-    // // //  console.log(productData);
-    return productData;
-  } catch (error) {
-    console.error("Error fetching product data:", error);
+  const productData = await queryDoc("products", productId);
+  if (!productData) {
+    // //  console.log("Product not found");
     return null;
   }
+
+  // Fetch brand data
+  // if (productData.brand) {
+  //   productData.sellerId = productData.seller;
+  //   const brandData = await fetchBrandData(productData.seller);
+  //   productData.seller = brandData.name;
+  // }
+
+  // Fetch image URLs
+  if (productData.images && Array.isArray(productData.images)) {
+    const imagePromises = productData.images.map(
+      (imagePath) => getFileUrl(imagePath),
+      //"https://firebasestorage.googleapis.com/v0/b/sahyan-shop.appspot.com/o/images%2Fproducts%2FDj0pDUbrxhFyOhbnb3Jt%2Fimage.jpg?alt=media&token=6bde6a2e-cde3-497e-9836-eac937ad43eb"
+    );
+    productData.imageUrls = await Promise.all(imagePromises);
+  }
+  await cacheService.set(productId, productData, "products");
+  // // //  console.log(productData);
+  return productData;
 };
 
 export const getDataPaginated = async (
@@ -87,6 +82,68 @@ export const getDataPaginated = async (
     console.error("Error getting documents: ", error);
     return { data: [], lastDoc: null, hasMore: false };
   }
+};
+
+export const getRecommendationData = async (userInterests) => {
+  // Take only the last 20 interests and remove duplicates
+  const limitedInterests = Array.from(new Set(userInterests.slice(-20)));
+
+  // Fetch the first 50 products from Firebase
+  const productsQuery = query(collection(db, "products"), limit(50));
+  const productsSnapshot = await getDocs(productsQuery);
+
+  // Convert the snapshot to an array of product objects
+  const productsPromise = productsSnapshot.docs.map(
+    async (doc) => await fetchProductData(doc.id),
+  );
+  const products = await Promise.all(productsPromise);
+
+  // console.log("Products", products);
+
+  // Filter the products based on user interests
+  const filteredProducts = products.filter((product) => {
+    return limitedInterests.some(
+      (interest) =>
+        (product.category && product.category.includes(interest)) ||
+        (product.keywords && product.keywords.includes(interest)) ||
+        (product.name &&
+          product.name.toLowerCase().includes(interest.toLowerCase())) ||
+        (product.shortDescription &&
+          product.shortDescription
+            .toLowerCase()
+            .includes(interest.toLowerCase())),
+    );
+  });
+  // console.log("Filters", filteredProducts);
+  // Sort the filtered products by relevance (number of matching interests)
+  filteredProducts.sort((a, b) => {
+    const scoreA = calculateRelevanceScore(a, limitedInterests);
+    const scoreB = calculateRelevanceScore(b, limitedInterests);
+    return scoreB - scoreA;
+  });
+
+  // Return the top 100 product IDs (or all if less than 100)
+  return filteredProducts.slice(0, 100).map((product) => product.id);
+};
+
+// Helper function to calculate relevance score
+const calculateRelevanceScore = (product, interests) => {
+  let score = 0;
+  interests.forEach((interest) => {
+    if (product.category && product.category.includes(interest)) score++;
+    if (product.keywords && product.keywords.includes(interest)) score++;
+    if (
+      product.name &&
+      product.name.toLowerCase().includes(interest.toLowerCase())
+    )
+      score++;
+    if (
+      product.shortDescription &&
+      product.shortDescription.toLowerCase().includes(interest.toLowerCase())
+    )
+      score++;
+  });
+  return score;
 };
 // export const getDataPaginatedParallel = async (
 //   collectionName,
