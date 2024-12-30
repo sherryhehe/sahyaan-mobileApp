@@ -29,7 +29,12 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    console.log("INIT LOGINT");
+    setLoading(false);
+  }, []);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -44,13 +49,14 @@ export default function Login() {
             history: [],
             interests: [],
           },
-          false
+          false,
         );
         router.replace("/explore");
       } catch (error) {
         setError(res.message);
+      } finally {
+        // setLoading(false);
       }
-      setLoading(false);
     });
 
     // Navigate to the main screen after login
@@ -60,7 +66,7 @@ export default function Login() {
     setLoading(true);
     const user = await googleSignin();
     try {
-      // //  console.log(user);
+      // //  // console.log(user);
       await addDataByID(
         `users`,
         user,
@@ -70,11 +76,11 @@ export default function Login() {
           history: [],
           interests: [],
         },
-        false
+        false,
       );
       router.replace("/explore");
     } catch (err) {
-      // //  console.log(err);
+      // //  // console.log(err);
       ToastAndroid.show(err.message, ToastAndroid.SHORT);
     }
   };
@@ -84,7 +90,7 @@ export default function Login() {
     setLoading(true);
     try {
       const id = await guestLogin();
-      console.log(id);
+      // console.log(id);
       await addDataByID(
         `users`,
         id.uid,
@@ -95,7 +101,7 @@ export default function Login() {
           interests: [],
           country: response.data.countryCode.toLowerCase(),
         },
-        false
+        false,
       );
       // Navigate to the main screen after login
       router.replace("/explore");
@@ -194,7 +200,7 @@ export default function Login() {
             <Text
               style={{
                 textAlign: "center",
-                fontFamily: "semi",
+                fontFamily: "semibold",
                 fontSize: 20,
                 color: Colors.primary,
               }}
@@ -204,7 +210,11 @@ export default function Login() {
           </TouchableOpacity>
           <Link
             href={"/signup"}
-            style={{ fontFamily: "thin", fontSize: 15, marginTop: 4 }}
+            style={{
+              fontFamily: "extraLight",
+              fontSize: 15,
+              marginTop: 4,
+            }}
           >
             Create account
           </Link>
@@ -228,7 +238,7 @@ export default function Login() {
               opacity: 0.5,
             }}
           />
-          <Text style={{ fontFamily: "thin", fontSize: 12 }}>OR</Text>
+          <Text style={{ fontFamily: "extraLight", fontSize: 12 }}>OR</Text>
           <View
             style={{
               width: "45%",
@@ -272,7 +282,7 @@ export default function Login() {
             <Text
               style={{
                 textAlign: "center",
-                fontFamily: "semi",
+                fontFamily: "semibold",
                 fontSize: 18,
 
                 color: Colors.bg,
@@ -303,7 +313,7 @@ export default function Login() {
             <Text
               style={{
                 textAlign: "center",
-                fontFamily: "semi",
+                fontFamily: "semibold",
                 fontSize: 18,
                 color: Colors.bg,
               }}
@@ -319,7 +329,7 @@ export default function Login() {
 
 const styles = StyleSheet.create({
   input: {
-    fontFamily: "thin",
+    fontFamily: "extraLight",
     fontSize: 16,
     height: 45,
     width: "100%",

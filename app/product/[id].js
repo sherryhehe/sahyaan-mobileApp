@@ -7,12 +7,13 @@ import {
   Dimensions,
   TouchableOpacity,
   ToastAndroid,
+  Pressable,
 } from "react-native";
 import { CustomText as Text } from "@/components/CustomText";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import fetchProductData from "@/functions/product";
+import fetchProductData from "@/helpers/product";
 import { Colors } from "@/constants/Colors";
 import { AntDesign } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -22,9 +23,12 @@ import {
   removeFromWishlist,
   addToCart,
   addToInterest,
-} from "@/functions/users";
+} from "@/helpers/users";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 import Loading from "@/components/Loading";
+
+import { db } from "@/firebase/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 const Product = () => {
   const { user, setUserData } = useUser();
@@ -87,7 +91,7 @@ const Product = () => {
       setUserData(true);
       ToastAndroid.show("Successfully added to cart", ToastAndroid.SHORT);
       // You can add some user feedback here, like a toast notification
-      // //  console.log("Product added to cart");
+      // //  // console.log("Product added to cart");
     } catch (error) {
       // console.error("Failed to add product to cart", error);
       ToastAndroid.show("Couldnt Add product to cart", ToastAndroid.SHORT);
@@ -171,7 +175,7 @@ const Product = () => {
           >
             <Text
               style={{
-                fontFamily: "heavy",
+                fontFamily: "extrabold",
                 fontSize: 30,
               }}
             >
@@ -185,7 +189,7 @@ const Product = () => {
                   padding: 8,
                 }}
                 onPress={() => {
-                  // // //  console.log(item.id);
+                  // // //  // console.log(item.id);
                   removeFromWishlist(user.uid, data.id);
                   setUserData(true);
                 }}
@@ -199,7 +203,7 @@ const Product = () => {
                   padding: 8,
                 }}
                 onPress={() => {
-                  // // //  console.log(item.id);
+                  // // //  // console.log(item.id);
                   addTowishList(user.uid, data.id);
                   setUserData(true);
                 }}
@@ -222,7 +226,7 @@ const Product = () => {
               fontSize: 20,
             }}
           >
-            $ {data.price}
+            {data.currency} {data.price}
           </Text>
           <Text
             style={{
@@ -246,7 +250,6 @@ const Product = () => {
           >
             {data.shortDescription}
           </Text>
-
           {/* <variant
             variant={{ name: "size", val: ["small", "large"] }}
             setvariant={setvariant}
@@ -262,11 +265,15 @@ const Product = () => {
               />
             );
           })}
+          <Specs specs={data.specs} />
           <Shipping
             shippingType={data.deliveryTime}
-            cost={data.deliveryCost}
+            cost={data.shipping_cost}
             cur={data.currency}
           />
+          <ReturnPolicy policy={data.returns} />
+          <SellerTile id={data.sellerId} />
+          <Reviews reviews={data.reviews ? data.reviews : []} />
         </View>
       </ScrollView>
       <View
@@ -302,7 +309,7 @@ const Product = () => {
           <Text
             style={{
               textAlign: "center",
-              fontFamily: "semi",
+              fontFamily: "semibold",
               fontSize: 18,
               color: Colors.primary,
             }}
@@ -326,7 +333,7 @@ const Product = () => {
           <Text
             style={{
               textAlign: "center",
-              fontFamily: "semi",
+              fontFamily: "semibold",
               fontSize: 18,
               color: Colors.bg,
             }}
@@ -383,7 +390,21 @@ const Shipping = ({ shippingType, cost, cur }) => {
         />
       </TouchableOpacity>
       {state && (
-        <View class="flex flex-col gap-2">
+        <View
+          class="flex flex-col gap-2"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            marginBottom: 4,
+
+            paddingVertical: 15,
+            borderTopColor: Colors.secondary + "4d",
+            borderBottomColor: Colors.secondary + "4d",
+            borderTopWidth: 1,
+            width: "100%",
+          }}
+        >
           <Text
             style={{
               fontFamily: "light",
@@ -401,6 +422,416 @@ const Shipping = ({ shippingType, cost, cur }) => {
           >
             Shipping Cost: {cur} {cost}
           </Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
+// <div
+//   className={`w-full rounded-md  hover:bg-secondary-600 hover:cursor-pointer ${isExpanded ? "flex" : "hidden md:flex"} duration-300 p-2 flex-row items-center justify-start gap-3`}
+// >
+//   <div className="w-8 h-8 rounded-full bg-primary-500">
+//     {user.photoURL ? (
+//       <img src={user.photoURL} />
+//     ) : (
+//       <Avatar
+//         size={"100%"}
+//         name={user.displayName}
+//         variant="pixel"
+//         colors={[
+//           "#181825",
+//           "#45475a",
+//           "#ffffff",
+//           "#11111b",
+//           "#050507",
+//           "#0D0E12",
+//           "#CCCCCC",
+//           "#07070B",
+//         ]}
+//       />
+//     )}
+//   </div>
+//   {isExpanded && (
+//     <div>
+//       <p className="text-sm font-semiBold">{user.displayName}</p>
+//       <p className="text-sm font-thin">{user.email}</p>
+//     </div>
+//   )}
+// </div>
+
+import { auth } from "@/firebase/firebase";
+import fetchBrandData from "@/helpers/brand";
+import { Star } from "lucide-react-native";
+const SellerTile = ({ id }) => {
+  const router = useRouter();
+  const [state, setState] = useState(false);
+  const [user, setUser] = useState();
+
+  async function getSeller(idx) {
+    const data = await fetchBrandData(idx);
+    console.log(data);
+    setUser(data);
+  }
+
+  useEffect(() => {
+    if (id) {
+      getSeller(id);
+    }
+  }, [id]);
+
+  // Helper to convert hex to RGB for opacity
+
+  return (
+    <View
+      style={{
+        width: "100%",
+        borderWidth: 0.5,
+        borderColor: Colors.primary,
+        minHeight: 50,
+        borderRadius: 20,
+        paddingHorizontal: 20,
+        marginTop: 10,
+      }}
+    >
+      <TouchableOpacity
+        onPress={() => setState((prev) => !prev)}
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 50,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "light",
+            fontSize: 18,
+          }}
+        >
+          Store Page
+        </Text>
+        <MaterialIcons
+          name={state ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+          size={24}
+          color="black"
+        />
+      </TouchableOpacity>
+      {state && user && (
+        <Pressable
+          onPress={() => {
+            router.push(`/seller/${id}`);
+          }}
+          style={({ pressed }) => ({
+            width: "100%",
+            flexDirection: "row",
+            alignItems: "center",
+            padding: 8,
+            borderRadius: 6,
+            gap: 12,
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 99999,
+              backgroundColor: Colors.bg,
+              overflow: "hidden",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {user?.photoURL ? (
+              <Image
+                source={{ uri: user.photoURL }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                }}
+                // defaultSource={require("@/assets/default-avatar.png")}
+              />
+            ) : (
+              <Image
+                source={require("@/assets/images/placeholder-store.png")}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                }}
+                // defaultSource={require("@/assets/default-avatar.png")}
+              />
+            )}
+          </View>
+
+          <View>
+            <Text
+              style={{
+                fontSize: 16,
+                fontFamily: "thin",
+              }}
+            >
+              {user?.name || "Store"}
+            </Text>
+          </View>
+        </Pressable>
+      )}
+    </View>
+  );
+};
+
+const ReturnPolicy = ({ policy }) => {
+  const [state, setState] = useState(false);
+
+  return (
+    <View
+      style={{
+        width: "100%",
+        borderWidth: 0.5,
+        borderColor: Colors.primary,
+        minHeight: 50,
+        borderRadius: 20,
+        paddingHorizontal: 20,
+        marginTop: 10,
+      }}
+    >
+      <TouchableOpacity
+        onPress={() => setState((prev) => !prev)}
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 50,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "light",
+            fontSize: 18,
+          }}
+        >
+          Return Policy
+        </Text>
+        <MaterialIcons
+          name={state ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+          size={24}
+          color="black"
+        />
+      </TouchableOpacity>
+      {state && (
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "flex-start",
+            width: "100%",
+          }}
+        >
+          <View
+            style={{
+              paddingVertical: 15,
+              borderTopColor: Colors.secondary + "4d",
+              borderBottomColor: Colors.secondary + "4d",
+              borderTopWidth: 1,
+              width: "100%",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "light",
+                fontSize: 18,
+              }}
+            >
+              {policy}
+            </Text>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+};
+
+const Reviews = ({ reviews }) => {
+  const [state, setState] = useState(false);
+
+  return (
+    <View
+      style={{
+        width: "100%",
+        borderWidth: 0.5,
+        borderColor: Colors.primary,
+        minHeight: 50,
+        borderRadius: 20,
+        paddingHorizontal: 20,
+        marginTop: 10,
+      }}
+    >
+      <TouchableOpacity
+        onPress={() => setState((prev) => !prev)}
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 50,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "light",
+            fontSize: 18,
+          }}
+        >
+          Reviews{"  "}
+          {reviews.reduce((acc, item) => acc + item.rating, 0)}{" "}
+          <Star size={12} fill={Colors.primary} color={Colors.primary} /> (
+          {reviews.length})
+        </Text>
+        <MaterialIcons
+          name={state ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+          size={24}
+          color="black"
+        />
+      </TouchableOpacity>
+      {state && (
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "flex-start",
+            width: "100%",
+          }}
+        >
+          {reviews.map((item, index) => (
+            <View
+              key={index}
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+
+                paddingVertical: 15,
+                borderTopColor: Colors.secondary + "4d",
+                borderBottomColor: Colors.secondary + "4d",
+                borderTopWidth: 1,
+                width: "100%",
+              }}
+            >
+              <View style={{}}>
+                <Text
+                  style={{
+                    fontFamily: "semibold",
+                    fontSize: 14,
+                  }}
+                >
+                  {item.userName}:
+                </Text>
+
+                <Text
+                  style={{
+                    fontFamily: "light",
+                    fontSize: 18,
+                    marginTop: 2,
+                  }}
+                  numberOfLines={3}
+                >
+                  {item.comment}
+                </Text>
+              </View>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 2,
+                  alignItems: "center",
+                }}
+              >
+                <Text>{item.rating}</Text>
+                <Star size={14} color={Colors.primary} />
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
+
+const Specs = ({ specs }) => {
+  const [state, setState] = useState(false);
+
+  return (
+    <View
+      style={{
+        width: "100%",
+        borderWidth: 0.5,
+        borderColor: Colors.primary,
+        minHeight: 50,
+        borderRadius: 20,
+        paddingHorizontal: 20,
+        marginTop: 10,
+      }}
+    >
+      <TouchableOpacity
+        onPress={() => setState((prev) => !prev)}
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 50,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "light",
+            fontSize: 18,
+          }}
+        >
+          Specifications
+        </Text>
+        <MaterialIcons
+          name={state ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+          size={24}
+          color="black"
+        />
+      </TouchableOpacity>
+      {state && (
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "flex-start",
+            width: "100%",
+          }}
+        >
+          {specs.map((item, index) => (
+            <View
+              key={index}
+              style={{
+                paddingVertical: 15,
+                borderTopColor: Colors.secondary + "4d",
+                borderBottomColor: Colors.secondary + "4d",
+                borderTopWidth: 1,
+                width: "100%",
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "light",
+                  fontSize: 18,
+                }}
+              >
+                {item.name} : {item.value}
+              </Text>
+            </View>
+          ))}
         </View>
       )}
     </View>
@@ -481,7 +912,7 @@ const Variant = ({ variant, setvariant, variants }) => {
               <Text
                 style={{
                   fontFamily:
-                    variants[variant.name] === item ? "semi" : "light",
+                    variants[variant.name] === item ? "semibold" : "light",
                   fontSize: 18,
                 }}
               >

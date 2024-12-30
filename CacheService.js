@@ -1,9 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BRAND_EXPIRY = 24 * 60 * 60 * 1000; // 1 day in milliseconds
-const PRODUCT_EXPIRY = 60 * 60 * 1000 * 4; // 1 hour in milliseconds
+const BRAND_EXPIRY = 10 * 60 * 1000; // 10 minutes in milliseconds
+const PRODUCT_EXPIRY = 10 * 60 * 1000; // 10 minutes in milliseconds
+const USER_EXPIRY = 10 * 60 * 1000; // 10 minutes in milliseconds
 
-const USER_EXPIRY = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+// const BRAND_EXPIRY = 0; // 10 minutes in milliseconds
+// const PRODUCT_EXPIRY = 0; // 10 minutes in milliseconds
+// const USER_EXPIRY = 0; // 10 minutes in milliseconds
 
 class CacheService {
   constructor() {

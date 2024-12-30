@@ -82,7 +82,7 @@ export default function Signup() {
     const user = await googleSignin();
     const response = await axios.get("http://ip-api.com/json/");
     try {
-      // //  console.log(user);
+      // //  // console.log(user);
       await addDataByID(
         `users`,
         user,
@@ -97,7 +97,7 @@ export default function Signup() {
       );
       router.replace("/explore");
     } catch (err) {
-      // //  console.log(err);
+      // //  // console.log(err);
       ToastAndroid.show(err.message, ToastAndroid.SHORT);
     }
   };
@@ -138,7 +138,7 @@ export default function Signup() {
           />
           <Dropdown
             style={styles.input}
-            fontFamily="thin"
+            fontFamily="extraLight"
             containerStyle={{
               fontSize: 16,
 
@@ -152,7 +152,7 @@ export default function Signup() {
               // paddingHorizontal: 8,
             }}
             placeholderStyle={{
-              fontFamily: "thin",
+              fontFamily: "extraLight",
               fontSize: 16,
             }}
             data={countryData}
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   input: {
-    fontFamily: "thin",
+    fontFamily: "extraLight",
     fontSize: 16,
     height: 45,
     width: "100%",
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   loginLink: {
-    fontFamily: "thin",
+    fontFamily: "extraLight",
     fontSize: 15,
     marginTop: 4,
   },
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   dividerText: {
-    fontFamily: "thin",
+    fontFamily: "extraLight",
     fontSize: 12,
   },
   socialButtonsContainer: {
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   },
   googleButtonText: {
     textAlign: "center",
-    fontFamily: "semi",
+    fontFamily: "semibold",
     fontSize: 17,
     color: Colors.bg,
   },

@@ -20,7 +20,7 @@ export const useUser = () => {
     try {
       let userDoc;
       if (update) {
-        console.log("UPDATE");
+        // // console.log("UPDATE");
         userDoc = await queryDoc("users", authUser.uid);
         if (userDoc) {
           setUserData({
@@ -33,7 +33,7 @@ export const useUser = () => {
           setUserData(authUser);
         }
       } else {
-        console.log("CACHE");
+        // console.log("CACHE");
         userDoc = await cacheService.get(authUser.uid, "users");
         if (userDoc) {
           setUserData({ ...authUser, ...userDoc });
@@ -52,7 +52,7 @@ export const useUser = () => {
         }
       }
     } catch (error) {
-      console.log("Error fetching user data:", error);
+      // console.log("Error fetching user data:", error);
     } finally {
       setLoading(false);
       setUpdate(false);
@@ -61,7 +61,7 @@ export const useUser = () => {
 
   useEffect(() => {
     fetchUserData();
-    // //  console.log("....");
+    // //  // console.log("....");
   }, [update]);
 
   return { user: userData, loading, setUserData: setUpdate };

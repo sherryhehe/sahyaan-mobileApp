@@ -15,7 +15,8 @@ import {
 export const addData = async (collectionName, data) => {
   try {
     const docRef = await addDoc(collection(db, collectionName), data);
-    // //  console.log("Document written with ID: ", docRef.id);
+    // //  // console.log("Document written with ID: ", docRef.id);
+    return docRef.id;
   } catch (error) {
     console.error("Error adding document: ", error);
   }
@@ -24,19 +25,19 @@ export const addDataByID = async (
   collectionName,
   docId,
   data,
-  update = true,
+  update = true
 ) => {
   try {
     const docRef = doc(db, collectionName, docId);
     const docSnap = await getDoc(docRef);
-    // //  console.log(update);
+    // //  // console.log(update);
     if (!update && docSnap.exists()) {
-      // //  console.log("Exists");
+      // //  // console.log("Exists");
       return null;
     }
     await setDoc(docRef, data, { merge: true });
     // await db.collection(collectionName).doc(docId).set(data);
-    // //  console.log("Document successfully written/updated with ID: ", docRef.id);
+    // //  // console.log("Document successfully written/updated with ID: ", docRef.id);
   } catch (error) {
     console.error("Error adding/updating document: ", error);
   }
@@ -94,14 +95,14 @@ export const queryDoc = async (collectionName, docId) => {
   const docSnap = await getDoc(docRef);
 
   if (docSnap.exists()) {
-    // //  console.log({ id: docSnap.id, ...docSnap.data() });
+    // //  // console.log({ id: docSnap.id, ...docSnap.data() });
     return { id: docSnap.id, ...docSnap.data() };
   } else {
-    // //  console.log("No such document!");
+    // //  // console.log("No such document!");
     return null;
   }
   // } catch (error) {
-  //   // //  console.log({ collectionName, docId });
+  //   // //  // console.log({ collectionName, docId });
   //   console.error("Error getting document:", error);
   //   return null;
   // }
@@ -110,7 +111,7 @@ export const queryDoc = async (collectionName, docId) => {
 export const deleteData = async (collection, id) => {
   try {
     await deleteDoc(doc(db, collection, id));
-    // //  console.log("Document successfully deleted!");
+    // //  // console.log("Document successfully deleted!");
   } catch (error) {
     console.error("Error removing document: ", error);
   }

@@ -1,50 +1,64 @@
-import { View, Image, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import React from "react";
-import { CustomText } from "./CustomText";
+import { CustomText as Text } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { useRouter } from "expo-router";
 
-const CategoriesButton = ({ icon, text, name }) => {
+const CategoriesButton = ({ Icon, text, name }) => {
   const router = useRouter();
   return (
     <View
       style={{
+        display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
         alignItems: "center",
-        marginRight: 10,
       }}
     >
       <TouchableOpacity
-        onPress={() => {
-          router.replace({ pathname: "search", params: { query: "0" } });
-        }}
         style={{
-          backgroundColor: Colors.primary,
-          padding: 30,
-          width: 150,
-          height: 150,
-          display: "flex",
+          flexDirection: "row",
           justifyContent: "center",
           alignItems: "center",
-          borderRadius: 8,
+          gap: 12,
+          borderColor: Colors.secondary,
+          borderWidth: 0.2,
+          borderRadius: 999,
+          padding: 15,
+          width: 50,
+          height: 50,
+          alignItems: "center",
+          justifyContent: "center",
+
+          backgroundColor: "#F5F5F5",
+        }}
+        activeOpacity={0.7}
+        onPress={() => {
+          router.push({
+            pathname: "search",
+            params: { query: "", category: name },
+          });
+          // router.replace({ pathname: "search", params: { query: name } });
         }}
       >
-        <Image
-          source={icon}
-          style={{
-            tintColor: Colors.bg,
-            width: 100,
-            height: 100,
-            resizeMode: "contain",
-          }}
+        <Icon
+          height={24}
+          width={24}
+          color={Colors.secondary}
+          style={{ color: Colors.secondary }}
         />
       </TouchableOpacity>
-      <CustomText style={{ fontFamily: "semi", fontSize: 14 }}>
+      <Text
+        style={{
+          fontSize: 10,
+          width: 50,
+          textWarp: true,
+          textAlign: "center",
+          marginTop: 4,
+        }}
+      >
         {text}
-      </CustomText>
+      </Text>
     </View>
   );
 };
-
 export default CategoriesButton;

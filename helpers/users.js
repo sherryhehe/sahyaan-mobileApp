@@ -27,7 +27,7 @@ export async function addToCart(userId, productId, amount = 1, variants) {
   const existingItem = cart.find(
     (item) =>
       item.id === productId &&
-      JSON.stringify(item.variants) === JSON.stringify(variants),
+      JSON.stringify(item.variants) === JSON.stringify(variants)
   );
 
   if (existingItem) {
@@ -44,11 +44,11 @@ export async function addToInterest(userId, interest) {
 
   let interestsToAdd = Array.isArray(interest)
     ? interest.flatMap((item) =>
-        typeof item === "string" ? item.split(/\s+/) : item,
+        typeof item === "string" ? item.split(/\s+/) : item
       )
     : typeof interest === "string"
-      ? interest.split(/\s+/)
-      : [interest];
+    ? interest.split(/\s+/)
+    : [interest];
 
   interestsToAdd = [...new Set(interestsToAdd)].filter(Boolean);
 
@@ -58,17 +58,17 @@ export async function addToInterest(userId, interest) {
 
   // Filter out interests that already exist
   const newInterests = interestsToAdd.filter(
-    (item) => !currentInterests.includes(item),
+    (item) => !currentInterests.includes(item)
   );
 
   if (newInterests.length > 0) {
     await updateDoc(docRef, {
       interest: arrayUnion(...newInterests),
     });
-    console.log("ADDED NEW INTERESTS", newInterests);
+    // console.log("ADDED NEW INTERESTS", newInterests);
     return true;
   } else {
-    console.log("NO NEW INTERESTS ADDED");
+    // console.log("NO NEW INTERESTS ADDED");
     return false;
   }
 }

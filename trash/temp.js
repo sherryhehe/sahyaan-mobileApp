@@ -89,7 +89,7 @@ const AddDummyData = () => {
         }
       }
 
-      // //  console.log("Dummy data added successfully");
+      // //  // console.log("Dummy data added successfully");
     } catch (error) {
       console.error("Error adding dummy data:", error);
     }

@@ -1,10 +1,10 @@
 // DataService.js
 import { queryDoc, getIDData } from "@/firebase/FirestoreService";
 import { getFileUrl } from "@/firebase/StorageService";
-// import fetchBrandData from "./brand";
+import fetchBrandData from "./brand";
 import { cacheService } from "@/CacheService";
 
-import { db } from "@/firebase/firebase";
+import { db, auth } from "@/firebase/firebase";
 import {
   collection,
   getDocs,
@@ -12,28 +12,33 @@ import {
   limit,
   startAfter,
   orderBy,
+  where,
+  or,
+  and,
 } from "firebase/firestore";
 
+import { useUser } from "@/firebase/UserContext";
 export default fetchProductData = async (productId) => {
   const cachedProduct = await cacheService.get(productId, "products");
-  // // //  console.log(`Cache ${cachedProduct}`);
+  // // //  // console.log(`Cache ${cachedProduct}`);
   if (cachedProduct) {
-    // // //  console.log("return cache");
+    // // //  // console.log("return cache");
     return cachedProduct;
   }
 
   const productData = await queryDoc("products", productId);
   if (!productData) {
-    // //  console.log("Product not found");
+    // //  // console.log("Product not found");
     return null;
   }
 
   // Fetch brand data
-  // if (productData.brand) {
-  //   productData.sellerId = productData.seller;
-  //   const brandData = await fetchBrandData(productData.seller);
-  //   productData.seller = brandData.name;
-  // }
+  if (productData.seller) {
+    productData.sellerId = productData.seller;
+    const brandData = await fetchBrandData(productData.seller);
+    // console.log(brandData);
+    productData.seller = brandData.name;
+  }
 
   // Fetch image URLs
   if (productData.images && Array.isArray(productData.images)) {
@@ -44,7 +49,7 @@ export default fetchProductData = async (productId) => {
     productData.imageUrls = await Promise.all(imagePromises);
   }
   await cacheService.set(productId, productData, "products");
-  // // //  console.log(productData);
+  // // //  // console.log(productData);
   return productData;
 };
 
@@ -65,10 +70,9 @@ export const getDataPaginated = async (
     }
 
     const snapshot = await getDocs(pageQuery);
-    const data = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const data = await Promise.all(
+      snapshot.docs.map(async (doc) => await fetchProductData(doc.id)),
+    );
 
     const newLastDoc = snapshot.docs[snapshot.docs.length - 1];
     const hasMore = data.length === pageSize;
@@ -88,8 +92,17 @@ export const getRecommendationData = async (userInterests) => {
   // Take only the last 20 interests and remove duplicates
   const limitedInterests = Array.from(new Set(userInterests.slice(-20)));
 
+  const u = auth.currentUser;
+  const user = await queryDoc("users", u.uid);
   // Fetch the first 50 products from Firebase
-  const productsQuery = query(collection(db, "products"), limit(50));
+  const productsQuery = query(
+    collection(db, "products"),
+    and(
+      or(where("country", "==", user.country), where("country", "==", "other")),
+    ),
+
+    limit(50),
+  );
   const productsSnapshot = await getDocs(productsQuery);
 
   // Convert the snapshot to an array of product objects
@@ -98,7 +111,7 @@ export const getRecommendationData = async (userInterests) => {
   );
   const products = await Promise.all(productsPromise);
 
-  // console.log("Products", products);
+  // // console.log("Products", products);
 
   // Filter the products based on user interests
   const filteredProducts = products.filter((product) => {
@@ -114,7 +127,7 @@ export const getRecommendationData = async (userInterests) => {
             .includes(interest.toLowerCase())),
     );
   });
-  // console.log("Filters", filteredProducts);
+  // // console.log("Filters", filteredProducts);
   // Sort the filtered products by relevance (number of matching interests)
   filteredProducts.sort((a, b) => {
     const scoreA = calculateRelevanceScore(a, limitedInterests);
@@ -171,9 +184,9 @@ const calculateRelevanceScore = (product, interests) => {
 //     let lastDocument = lastDoc;
 
 //     for (let i = 0; i < parallelQueries; i++) {
-//       // //  console.log(i);
+//       // //  // console.log(i);
 //       const pageData = await fetchPage(lastDocument);
-//       // //  console.log(pageData);
+//       // //  // console.log(pageData);
 //       allData = [...allData, ...pageData];
 
 //       if (pageData.length < pageSize) {

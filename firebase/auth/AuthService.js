@@ -43,7 +43,7 @@ export const logout = async () => {
     await signOut(auth);
     await GoogleSignin.revokeAccess();
   } catch (error) {
-    // //  console.log("Error logging out:", error);
+    // //  // console.log("Error logging out:", error);
   }
 };
 
@@ -63,7 +63,7 @@ export const googleSignin = async () => {
     // Extract the user information
     const user = userCredential.user;
 
-    // //  console.log("User UID:", user.uid);
+    // //  // console.log("User UID:", user.uid);
 
     return user.uid;
   } catch (error) {

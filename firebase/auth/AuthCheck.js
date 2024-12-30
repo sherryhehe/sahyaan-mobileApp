@@ -15,7 +15,7 @@ const AuthCheck = ({ children }) => {
       if (user) {
         setUser(user);
       } else {
-        // //  console.log("login");
+        // //  // console.log("login");
         // router.replace("login");
       }
       setLoading(false);

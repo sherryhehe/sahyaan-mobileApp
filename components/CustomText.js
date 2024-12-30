@@ -3,7 +3,7 @@ import { Text, StyleSheet } from "react-native";
 
 export const CustomText = ({ style, children, ...props }) => {
   const fontSize = StyleSheet.flatten(style)?.fontSize || 14; // Default font size if not specified
-  const fontFamily = StyleSheet.flatten(style)?.fontFamily || "thin"; // Default font size if not specified
+  const fontFamily = StyleSheet.flatten(style)?.fontFamily || "extraLight"; // Default font size if not specified
   const lineHeightMultiplier = 1.2;
   const calculatedStyle = {
     ...StyleSheet.flatten(style),

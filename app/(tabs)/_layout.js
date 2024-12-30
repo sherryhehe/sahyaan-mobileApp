@@ -1,6 +1,6 @@
 import { Colors } from "@/constants/Colors";
-import { Tabs } from "expo-router";
-import React from "react";
+import { Tabs, useRouter } from "expo-router";
+import React, { useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import Home from "@/assets/images/tabs/home.png";
 import HomeO from "@/assets/images/tabs/home-o.png";
@@ -12,7 +12,18 @@ import ExploreO from "@/assets/images/tabs/explore-o.png";
 import Cart from "@/assets/images/tabs/trolley.png";
 import CartO from "@/assets/images/tabs/trolley-o.png";
 import { Image } from "react-native";
+import { useUser } from "@/firebase/UserContext";
 export default function TabLayout() {
+  const router = useRouter();
+  const { user, loading } = useUser();
+  console.log("index");
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.replace("/login");
+      }
+    }
+  }, [user, loading]);
   return (
     <Tabs
       screenOptions={{
@@ -26,7 +37,7 @@ export default function TabLayout() {
         headerShown: false,
       }}
       safeAreaInsets={90}
-      initialRouteName="explore"
+      initialRouteName="home"
     >
       <Tabs.Screen
         name="home"
@@ -110,6 +121,14 @@ export default function TabLayout() {
             ),
         }}
       />
+      {/*    HIDDEN VIEWS    */}
+
+      {/* <Tabs.Screen
+        name="wishlist"
+        options={{
+          tabBarButton: (props) => null,
+        }}
+      /> */}
     </Tabs>
   );
 }

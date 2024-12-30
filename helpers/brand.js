@@ -2,16 +2,16 @@ import { queryDoc } from "@/firebase/FirestoreService";
 import { cacheService } from "@/CacheService";
 export default fetchBrandData = async (brandId) => {
   try {
-    // const cachedBrand = await cacheService.get(brandId, "seller");
+    const cachedBrand = await cacheService.get(brandId, "seller");
     // console.log(`Cache brand ${cachedBrand}`);
-    // if (cachedBrand) {
-    //   console.log("return cache");
-    //   return cachedBrand;
-    // }
+    if (cachedBrand) {
+      // console.log("return cache");
+      return cachedBrand;
+    }
 
     const brandData = await queryDoc("seller", brandId);
     if (!brandData) {
-      console.log("Brand not found");
+      // console.log("Brand not found");
       return null;
     }
 

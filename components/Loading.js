@@ -17,7 +17,7 @@ const Loading = () => {
     >
       <Image
         source={TempImage}
-        style={{ width: 60, height: 60, backgroundColor: Colors.bg }}
+        style={{ width: 60, height: 60, backgroundColor: "#FFF" }}
       />
     </View>
   );

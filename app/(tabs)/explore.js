@@ -14,10 +14,10 @@ import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { CustomText as Text } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
-import { getRecommendationData } from "@/functions/product";
+import { getRecommendationData } from "@/helpers/product";
 const { height } = Dimensions.get("window");
 import { useUser } from "@/firebase/UserContext";
-import { addTowishList, removeFromWishlist } from "@/functions/users";
+import { addTowishList, removeFromWishlist } from "@/helpers/users";
 import { MaterialIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import Loading from "@/components/Loading";
@@ -45,54 +45,60 @@ export default function explore() {
   }, [user, fetchInitialData]);
   const fetchInitialData = useCallback(async () => {
     const startTime = Date.now();
-    console.log("fetchInitialData started");
+    // console.log("fetchInitialData started");
 
     // try {
     const interests =
-      user.interest && user.interest.length > 0 ? user.interest : ["PQR"];
+      user.interest && user.interest.length > 0 ? user.interest : [];
 
-    console.log(`Interests determined in ${Date.now() - startTime}ms`);
+    // console.log(`Interests determined in ${Date.now() - startTime}ms`);
 
     const recommendationStartTime = Date.now();
     const data = await getRecommendationData(interests);
-    console.log(
-      `getRecommendationData took ${Date.now() - recommendationStartTime}ms`,
-    );
-    console.log(data);
+    console.log("unfil ", data);
+    // const data = dataUnfiltered.filter((item) =>
+    //   [user.country, "other"].includes(item.coutry),
+    // );
+    // console.log(
+    //   `getRecommendationData took ${Date.now() - recommendationStartTime}ms`
+    // );
+    // console.log(data);
     allDataRef.current = data;
 
     if (data && Array.isArray(data)) {
       const sliceStartTime = Date.now();
       const initialBatch = data.slice(0, INITIAL_BATCH_SIZE);
-      console.log(
-        `Slicing initial batch took ${Date.now() - sliceStartTime}ms`,
-      );
+      // console.log(
+      //   `Slicing initial batch took ${Date.now() - sliceStartTime}ms`
+      // );
 
       const mappingStartTime = Date.now();
       const detailedDataPromises = initialBatch.map(fetchProductData);
-      console.log(
-        `Mapping fetchProductData took ${Date.now() - mappingStartTime}ms`,
-      );
+      // console.log(
+      //   `Mapping fetchProductData took ${Date.now() - mappingStartTime}ms`
+      // );
 
       const promiseAllStartTime = Date.now();
       const detailedData = await Promise.all(detailedDataPromises);
-      console.log(
-        `Promise.all for detailed data took ${Date.now() - promiseAllStartTime}ms`,
-      );
-      // console.log(detailedData);
+      // console.log(
+      //   `Promise.all for detailed data took ${
+      //     Date.now() - promiseAllStartTime
+      //   }ms`
+      // );
+      // // console.log(detailedData);
       const setStateStartTime = Date.now();
       setExploreData(detailedData);
       setLastLoadedIndex(INITIAL_BATCH_SIZE);
-      console.log(`Setting state took ${Date.now() - setStateStartTime}ms`);
+      // console.log(`Setting state took ${Date.now() - setStateStartTime}ms`);
     }
     // } catch (error) {
     //   console.error("Error fetching initial data:", error);
     // }
 
-    console.log(
-      `Total fetchInitialData execution time: ${Date.now() - startTime}ms`,
-    );
-    console.log();
+    // console.log(
+    //   `Total fetchInitialData execution time: ${Date.now() - startTime}ms`
+    // );
+    // console.log();
   }, [user, fetchProductData]);
 
   const loadMoreData = useCallback(async () => {
@@ -146,7 +152,7 @@ export default function explore() {
   });
 
   const renderItem = ({ item, index }) => {
-    console.log(item);
+    // console.log(item);
     return (
       <View
         style={{
@@ -185,7 +191,7 @@ export default function explore() {
               backgroundColor: Colors.bg,
               // Ensure image doesn't overflow its container
             }}
-            resizeMode="contain"
+            resizeMode="cover"
           >
             <View
               style={{
@@ -225,7 +231,7 @@ export default function explore() {
                   style={{
                     fontSize: 26,
                     color: Colors.bg,
-                    fontFamily: "semi",
+                    fontFamily: "semibold",
                   }}
                 >
                   {item.brand}
@@ -237,14 +243,14 @@ export default function explore() {
                     fontFamily: "bold",
                   }}
                 >
-                  ${item.price.toFixed(2)}
+                  {item.currency} {item.price.toFixed(2)}
                 </Text>
 
                 <Text
                   style={{
                     fontSize: 16,
                     color: Colors.bg,
-                    fontFamily: "thin",
+                    fontFamily: "extraLight",
                   }}
                   numberOfLines={2}
                 >
@@ -275,7 +281,7 @@ export default function explore() {
                           ToastAndroid.SHORT,
                         );
                         // You can add some user feedback here, like a toast notification
-                        // //  console.log("Product added to cart");
+                        // //  // console.log("Product added to cart");
                       } catch (error) {
                         ToastAndroid.show(
                           "Couldnt Add product to wishlist",
@@ -304,7 +310,7 @@ export default function explore() {
                           ToastAndroid.SHORT,
                         );
                         // You can add some user feedback here, like a toast notification
-                        // //  console.log("Product added to cart");
+                        // //  // console.log("Product added to cart");
                       } catch (error) {
                         ToastAndroid.show(
                           "Couldnt Add product to wishlist",
@@ -407,7 +413,7 @@ export default function explore() {
         ListFooterComponent={() =>
           loadingMore ? (
             <View style={{ padding: 10, alignItems: "center" }}>
-              <Text style={{ fontFamily: "thin" }}>Loading more...</Text>
+              <Text style={{ fontFamily: "extraLight" }}>Loading more...</Text>
             </View>
           ) : null
         }
@@ -438,7 +444,7 @@ export default function explore() {
         >
           <Text
             style={{
-              fontFamily: "thin",
+              fontFamily: "extraLight",
             }}
           >
             Loading more...

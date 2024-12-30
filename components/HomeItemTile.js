@@ -1,12 +1,13 @@
 import { View, Image, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
-import fetchProductData from "@/functions/product";
+import fetchProductData from "@/helpers/product";
 import { Colors } from "@/constants/Colors";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { useUser } from "@/firebase/UserContext";
-import { addTowishList, removeFromWishlist } from "@/functions/users";
+import { addTowishList, removeFromWishlist } from "@/helpers/users";
 import { CustomText as Text } from "@/components/CustomText";
+import { Star } from "lucide-react-native";
 const HomeItemTile = ({ id }) => {
   const { user, setUserData } = useUser();
   const [loading, setLoading] = useState(true);
@@ -40,7 +41,7 @@ const HomeItemTile = ({ id }) => {
         alignItems: "center",
         margin: 2,
         opacity: loading ? 0.4 : 1,
-        width: 180,
+        width: 190,
       }}
     >
       <View
@@ -78,7 +79,7 @@ const HomeItemTile = ({ id }) => {
                 alignItems: "center",
               }}
               onPress={() => {
-                // // //  console.log(item.id);
+                // // //  // console.log(item.id);
                 removeFromWishlist(user.uid, itemData.id);
                 setUserData(true);
               }}
@@ -96,7 +97,7 @@ const HomeItemTile = ({ id }) => {
                 alignItems: "center",
               }}
               onPress={() => {
-                // // //  console.log(item.id);
+                // // //  // console.log(item.id);
                 addTowishList(user.uid, itemData.id);
                 setUserData(true);
               }}
@@ -105,7 +106,7 @@ const HomeItemTile = ({ id }) => {
             </TouchableOpacity>
           )}
         </View>
-        {!loading && itemData.imageUrls ? (
+        {!loading && itemData.imageUrls && (
           <Image
             source={{ uri: itemData.imageUrls[0] }}
             style={{
@@ -116,21 +117,6 @@ const HomeItemTile = ({ id }) => {
               borderRadius: 4,
             }}
           />
-        ) : (
-          !loading && (
-            <Image
-              source={{
-                uri: "https://firebasestorage.googleapis.com/v0/b/sahyan-shop.appspot.com/o/images%2Fproducts%2FDj0pDUbrxhFyOhbnb3Jt%2Fimage.jpg?alt=media&token=6bde6a2e-cde3-497e-9836-eac937ad43eb",
-              }}
-              style={{
-                resizeMode: "cover",
-                width: "100%",
-                height: "100%",
-                // aspectRatio: 1,
-                borderRadius: 4,
-              }}
-            />
-          )
         )}
       </View>
 
@@ -170,8 +156,8 @@ const HomeItemTile = ({ id }) => {
           >
             <Text
               style={{
-                fontFamily: "regular",
-                size: 12,
+                fontFamily: "bold",
+                size: 16,
                 color: Colors.text,
               }}
             >
@@ -198,15 +184,40 @@ const HomeItemTile = ({ id }) => {
             </Text>
           </View>
         ) : (
-          <Text
+          <View
             style={{
-              fontFamily: "bold",
-              fontSize: 16,
-              color: Colors.text,
+              display: "flex",
+              justifyContent: "space-between",
+              flexDirection: "row",
             }}
           >
-            $ {itemData.price}
-          </Text>
+            <Text
+              style={{
+                fontFamily: "light",
+                fontSize: 14,
+                color: Colors.text,
+                alignItems: "center",
+              }}
+            >
+              {itemData.currency} {itemData.price} -{" "}
+              {itemData.reviews
+                ? itemData.reviews.reduce((acc, item) => acc + item.rating, 0)
+                : 0}{" "}
+              <Star size={12} fill={Colors.primary} color={Colors.primary} /> (
+              {itemData.reviews ? itemData.reviews.length : 0})
+            </Text>
+
+            <Text
+              style={{
+                fontFamily: "light",
+                fontSize: 14,
+                color: Colors.text,
+                alignItems: "center",
+              }}
+            >
+              {itemData.country && itemData.country === "other" && "Overseas"}
+            </Text>
+          </View>
         )}
       </View>
     </TouchableOpacity>

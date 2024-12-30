@@ -9,7 +9,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { CustomText as Text } from "@/components/CustomText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/Colors";
-import fetchProductData from "@/functions/product";
+import fetchProductData from "@/helpers/product";
 import { useUser } from "@/firebase/UserContext";
 import { Feather } from "@expo/vector-icons";
 import { doc, updateDoc } from "firebase/firestore";
@@ -47,13 +47,13 @@ const Cart = () => {
   };
 
   useEffect(() => {
-    console.log(prices);
+    // console.log(prices);
     if (Object.keys(prices).length === 0) {
       setTotalPrice(0);
     } else {
       const newTotalPrice = Object.values(prices).reduce(
         (sum, price) => sum + price,
-        0,
+        0
       );
       setTotalPrice(newTotalPrice);
     }
@@ -63,10 +63,10 @@ const Cart = () => {
     useCallback(() => {
       setUserData(true);
       return () => {
-        //  console.log("exit");
+        //  // console.log("exit");
         updateCartInFirebase();
       };
-    }, []),
+    }, [])
   );
 
   useFocusEffect(
@@ -87,7 +87,7 @@ const Cart = () => {
         fetchPrices();
         setLoading(false);
       }
-    }, [user]),
+    }, [user])
   );
 
   const clearCart = () => {
@@ -175,13 +175,17 @@ const Cart = () => {
               fontSize: 20,
             }}
           >
-            $ {totalPrice.toFixed(2)}
+            {user.currency} {totalPrice.toFixed(2)}
           </Text>
         </View>
         {cartData && cartData.length > 0 && (
           <TouchableOpacity
             onPress={() => {
-              router.push("checkout");
+              // console.log("Cart Data", cartData);
+              router.push({
+                pathname: "checkout",
+                params: { data: JSON.stringify(cartData) },
+              });
             }}
             style={{
               backgroundColor: Colors.primary,
@@ -193,7 +197,7 @@ const Cart = () => {
               borderRadius: 4,
             }}
           >
-            <Text style={{ color: Colors.bg, fontFamily: "semi" }}>
+            <Text style={{ color: Colors.bg, fontFamily: "semibold" }}>
               Checkout
             </Text>
           </TouchableOpacity>
@@ -236,7 +240,7 @@ const CartItem = ({ item, cartData, setCartData, setPrices }) => {
         cartItem.id === item.id &&
         JSON.stringify(cartItem.variants) === JSON.stringify(item.variants)
           ? { ...cartItem, count: newCount }
-          : cartItem,
+          : cartItem
       )
       .filter((cartItem) => cartItem.count > 0);
     setCartData(updatedCartData);
@@ -253,16 +257,17 @@ const CartItem = ({ item, cartData, setCartData, setPrices }) => {
         !(
           cartItem.id === item.id &&
           JSON.stringify(cartItem.variants) === JSON.stringify(item.variants)
-        ),
+        )
     );
     setCartData(updatedCartData);
     const variantKey = getVariantKey(item);
     setPrices((prev) => {
       const { [variantKey]: removed, ...rest } = prev;
-      console.log("prices", rest);
+      // console.log("prices", rest);
       return rest;
     });
   };
+
   const router = useRouter();
   if (!itemData) {
     return (
@@ -279,6 +284,8 @@ const CartItem = ({ item, cartData, setCartData, setPrices }) => {
       />
     );
   }
+  // console.log("DATA: ", itemData);
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -295,23 +302,23 @@ const CartItem = ({ item, cartData, setCartData, setPrices }) => {
         gap: 8,
       }}
     >
-      <View
+      <Image
+        source={{ uri: itemData.imageUrls[0] }}
         style={{
           backgroundColor: Colors.primary,
           height: 200,
+          width: "100%",
           borderRadius: 8,
-          flex: 0.4,
+          flex: 0.35,
         }}
-      >
-        <Image source={{ uri: itemData.imageUrls[0] }} />
-      </View>
+      />
       <View
         style={{
           paddingVertical: 4,
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          flex: 0.6,
+          flex: 0.65,
         }}
       >
         <View
@@ -325,7 +332,7 @@ const CartItem = ({ item, cartData, setCartData, setPrices }) => {
           <Text
             style={{
               fontFamily: "bold",
-              fontSize: 20,
+              fontSize: 18,
               flex: 0.65,
             }}
             numberOfLines={2}
@@ -335,12 +342,12 @@ const CartItem = ({ item, cartData, setCartData, setPrices }) => {
           <Text
             style={{
               fontFamily: "bold",
-              fontSize: 17,
-              flex: 0.35,
+              fontSize: 16,
+              flex: 0.4,
               textAlign: "right",
             }}
           >
-            $ {itemData && itemData.price.toFixed(2)}
+            {itemData.currency} {itemData && itemData.price.toFixed(2)}
           </Text>
         </View>
         <Text style={{ fontFamily: "regular", fontSize: 17 }}>
@@ -355,11 +362,14 @@ const CartItem = ({ item, cartData, setCartData, setPrices }) => {
         >
           {variants &&
             Object.entries(variants).map(([key, value]) => {
-              //  console.log(key);
+              //  // console.log(key);
               return (
                 <Text
                   key={`${key}`}
-                  style={{ fontFamily: "thin", fontSize: 14 }}
+                  style={{
+                    fontFamily: "extraLight",
+                    fontSize: 14,
+                  }}
                 >
                   {key}: {value}
                 </Text>

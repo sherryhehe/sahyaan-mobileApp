@@ -10,7 +10,7 @@ import {
 import { CustomText as Text } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { MaterialIcons } from "@expo/vector-icons";
-import fetchBrandData from "@/functions/brand";
+import fetchBrandData from "@/helpers/brand";
 
 const FilterModal = ({ isVisible, onClose, onApplyFilters, searchResults }) => {
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
@@ -31,7 +31,7 @@ const FilterModal = ({ isVisible, onClose, onApplyFilters, searchResults }) => {
         searchResults.map(async (item) => {
           // const brandData = await fetchBrandData(item.brand);
           return item.brand;
-        }),
+        })
       ),
     ];
     setCategories(uniqueCategories);

@@ -19,43 +19,137 @@ import Loading from "@/components/Loading";
 
 const HEADERAD1 = require("@/assets/images/ad3.jpg");
 const { height } = Dimensions.get("window");
-const elec = require("@/assets/images/icons/elec.png");
+// const elec = require("@/assets/images/icons/elec.png");
 
+import {
+  Laptop,
+  Computer,
+  Smartphone,
+  Shirt,
+  ShoppingBag,
+  Watch,
+  Headphones,
+  Dumbbell,
+  Scissors,
+  Baby,
+} from "lucide-react-native";
+// import Slider from "../../components/Slider";
+import WomenClothes from "@/assets/icons/woman-head.svg";
+import Lipstick from "@/assets/icons/lipstick.svg";
+import ManCloth from "@/assets/icons/employee-man-alt.svg";
+
+import { useUser } from "@/firebase/UserContext";
+import { getRecommendationData } from "@/helpers/product";
 const index = () => {
   const router = useRouter();
 
+  const { user, setUserData } = useUser();
   const [searchQuery, setSearchQuery] = useState();
   const [productPromotionsTop, setProductPromotionsTop] = useState();
   const [productPromotionsMid, setProductPromotionsMid] = useState();
   const [productPromotionsBottom, setProductPromotionsBottom] = useState();
   const [loading, setLoading] = useState(true);
+  const [feed, setFeed] = useState();
+
+  const categories = [
+    { name: "Electronics", icon: Laptop },
+    { name: "Computer Accessories", icon: Computer },
+    { name: "Men", icon: ManCloth },
+    { name: "Women", icon: WomenClothes },
+    { name: "Kids", icon: Baby },
+    { name: "Laptops", icon: Laptop },
+    { name: "Computers", icon: Computer },
+    { name: "Mobiles", icon: Smartphone },
+    { name: "Accessories", icon: Headphones },
+    { name: "Makeup", icon: Lipstick },
+    { name: "Perfumes", icon: ShoppingBag },
+    { name: "Fitness", icon: Dumbbell },
+    { name: "Grooming", icon: Scissors },
+    { name: "Watches", icon: Watch },
+  ];
+
   // INIT EFFECT
   useEffect(() => {
     async function init() {
       setLoading(true);
       await fetchProductPromotions();
+      await fetchRecommendedProducts();
       setLoading(false);
     }
-    init();
-  }, []);
+    if (user) init();
+  }, [user]);
+
+  // console.log(productPromotionsTop);
+  // console.log(productPromotionsMid);
+  // console.log(productPromotionsBottom);
+
+  async function fetchRecommendedProducts() {
+    const interests =
+      user.interest && user.interest.length > 0 ? user.interest : [];
+    const data = await getRecommendationData(interests);
+    // const data = dataUnfiltered.filter((item) => {
+    //   console.log(item);
+    //   return [user.country, "other"].includes(item.coutry);
+    // });
+    // const feed_temp = [data.slice(0, 20), data.slice(20, 40), data.slice(40)];
+    // console.log(feed_temp);
+    setFeed([data.slice(0, 10), data.slice(10, 20), data.slice(20)]);
+  }
+
   async function fetchProductPromotions() {
     const data = await queryDoc("promotions", "products");
-    setProductPromotionsTop(data["top"]);
-    setProductPromotionsBottom(data["bottom"]);
-    setProductPromotionsMid(data["middle"]);
+    setProductPromotionsTop(
+      data["top"]
+        ? data["top"]
+            .filter(
+              (item) =>
+                new Date(item.expiry) <= new Date() &&
+                [user.country, "other"].includes(item.coutry),
+            )
+            .sort(() => Math.random() - 0.5)
+            .map((item) => item.id)
+        : [],
+    );
+    setProductPromotionsBottom(
+      data["bottom"]
+        ? data["bottom"]
+            .filter(
+              (item) =>
+                new Date(item.expiry) <= new Date() &&
+                [user.country, "other"].includes(item.coutry),
+            )
+            .sort(() => Math.random() - 0.5)
+            .map((item) => item.id)
+        : [],
+    );
+    setProductPromotionsMid(
+      data["middle"]
+        ? data["middle"]
+            .filter(
+              (item) =>
+                new Date(item.expiry) <= new Date() &&
+                [user.country, "other"].includes(item.coutry),
+            )
+            .sort(() => Math.random() - 0.5)
+            .map((item) => item.id)
+        : [],
+    );
   }
 
   const handleSearch = () => {
-    router.push({ pathname: "search", params: { query: searchQuery } });
+    router.push({
+      pathname: "search",
+      params: { query: searchQuery, filter: {} },
+    });
     ToastAndroid.show(`Searched: ${searchQuery}`, ToastAndroid.SHORT);
   };
 
-  const renderColumns = () => {
+  const renderColumns = (products) => {
     const columns = [];
     const itemsPerColumn = 2; // Number of items per column
 
-    for (let i = 0; i < productPromotionsBottom.length; i += itemsPerColumn) {
-      const columnItems = productPromotionsBottom.slice(i, i + itemsPerColumn);
+    for (let i = 0; i < products.length; i += itemsPerColumn) {
+      const columnItems = products.slice(i, i + itemsPerColumn);
       columns.push(
         <View
           key={i}
@@ -79,7 +173,7 @@ const index = () => {
             //   text={"Electronics"}
             // />
           ))}
-        </View>
+        </View>,
       );
     }
 
@@ -162,54 +256,68 @@ const index = () => {
         </View>
       </ImageBackground>
 
-      <View
-        style={{
-          marginTop: 20,
-          backgroundColor: Colors.secondary,
-          paddingVertical: 8,
-          // paddingHorizontal: 10,
-          minWidth: 150,
-          maxWidth: 150,
-          borderRadius: 7,
-          marginBottom: 12,
-          alignItems: "center",
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: "regular",
-            color: Colors.bg,
-            fontSize: 18,
-            fontFamily: "regular",
-          }}
-        >
-          Sponsored
-        </Text>
-      </View>
-
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
+        horizontal={true}
         style={{
-          paddingHorizontal: 6,
-          marginRight: 20,
-          paddingRight: 80,
+          display: "flex",
+          flexDirection: "row",
+          marginTop: 18,
         }}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ marginStart: 4, gap: 10 }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-          }}
-        >
-          {productPromotionsTop &&
-            productPromotionsTop.map((item, index) => (
-              // <View key={item}>
-              <HomeItemTile key={index} id={item} />
-              // </View>
-            ))}
-        </View>
+        {categories.map((item, index) => (
+          <CategoriesButton
+            key={index}
+            Icon={item.icon}
+            text={item.name}
+            name={item.name}
+          />
+        ))}
       </ScrollView>
+      {productPromotionsTop && productPromotionsTop.length > 0 && (
+        <>
+          <View
+            style={{
+              marginTop: 20,
+              backgroundColor: Colors.secondary,
+              paddingVertical: 8,
+              // paddingHorizontal: 10,
+              minWidth: 150,
+              maxWidth: 150,
+              borderRadius: 7,
+              marginBottom: 12,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "regular",
+                color: Colors.bg,
+                fontSize: 18,
+                fontFamily: "regular",
+              }}
+            >
+              Promotions
+            </Text>
+          </View>
 
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View
+              style={{
+                flexDirection: "row",
+              }}
+            >
+              {productPromotionsTop &&
+                productPromotionsTop.map((item, index) => (
+                  // <View key={item}>
+                  <HomeItemTile key={index} id={item} />
+                  // </View>
+                ))}
+            </View>
+          </ScrollView>
+        </>
+      )}
       <View
         style={{
           marginTop: 20,
@@ -236,118 +344,104 @@ const index = () => {
       </View>
 
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
         style={{
-          paddingHorizontal: 6,
-          marginRight: 20,
-          paddingRight: 80,
+          flexDirection: "row",
         }}
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
       >
-        <View
-          style={{
-            flexDirection: "row",
-          }}
-        >
-          {productPromotionsBottom && renderColumns()}
-        </View>
+        {feed &&
+          feed[0] &&
+          renderColumns([...feed[0], ...feed[0], ...feed[0], ...feed[0]])}
       </ScrollView>
 
-      <View
-        style={{
-          marginTop: 20,
-          backgroundColor: Colors.secondary,
-          paddingVertical: 8,
-          // paddingHorizontal: 10,
-          minWidth: 150,
-          maxWidth: 150,
-          borderRadius: 7,
-          marginBottom: 12,
-          alignItems: "center",
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: "regular",
-            color: Colors.bg,
-            fontSize: 18,
-            fontFamily: "regular",
-          }}
-        >
-          Sponsored
-        </Text>
-      </View>
+      {productPromotionsMid && productPromotionsMid.length > 0 && (
+        <>
+          <View
+            style={{
+              marginTop: 20,
+              backgroundColor: Colors.secondary,
+              paddingVertical: 8,
+              // paddingHorizontal: 10,
+              minWidth: 150,
+              maxWidth: 150,
+              borderRadius: 7,
+              marginBottom: 12,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "regular",
+                color: Colors.bg,
+                fontSize: 18,
+                fontFamily: "regular",
+              }}
+            >
+              Promotions
+            </Text>
+          </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{
-          paddingHorizontal: 6,
-          marginRight: 20,
-          paddingRight: 80,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-          }}
-        >
-          {productPromotionsMid &&
-            productPromotionsMid.map((item, index) => (
-              // <View key={item}>
-              <HomeItemTile key={index} id={item} />
-              // </View>
-            ))}
-        </View>
-      </ScrollView>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View
+              style={{
+                flexDirection: "row",
+              }}
+            >
+              {productPromotionsMid &&
+                productPromotionsMid.map((item, index) => (
+                  // <View key={item}>
+                  <HomeItemTile key={index} id={item} />
+                  // </View>
+                ))}
+            </View>
+          </ScrollView>
+        </>
+      )}
 
-      <View
-        style={{
-          marginTop: 20,
-          backgroundColor: Colors.secondary,
-          paddingVertical: 8,
-          // paddingHorizontal: 10,
-          minWidth: 150,
-          maxWidth: 150,
-          borderRadius: 7,
-          marginBottom: 12,
-          alignItems: "center",
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: "regular",
-            color: Colors.bg,
-            fontSize: 18,
-            fontFamily: "regular",
-          }}
-        >
-          Sponsored
-        </Text>
-      </View>
+      {productPromotionsBottom && productPromotionsBottom.length > 0 && (
+        <>
+          <View
+            style={{
+              marginTop: 20,
+              backgroundColor: Colors.secondary,
+              paddingVertical: 8,
+              // paddingHorizontal: 10,
+              minWidth: 150,
+              maxWidth: 150,
+              borderRadius: 7,
+              marginBottom: 12,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "regular",
+                color: Colors.bg,
+                fontSize: 18,
+                fontFamily: "regular",
+              }}
+            >
+              Promotions
+            </Text>
+          </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{
-          paddingHorizontal: 6,
-          marginRight: 20,
-          paddingRight: 80,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-          }}
-        >
-          {productPromotionsBottom &&
-            productPromotionsBottom.map((item, index) => (
-              // <View key={item}>
-              <HomeItemTile key={index} id={item} />
-              // </View>
-            ))}
-        </View>
-      </ScrollView>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View
+              style={{
+                flexDirection: "row",
+              }}
+            >
+              {productPromotionsBottom &&
+                productPromotionsBottom.map((item, index) => (
+                  // <View key={item}>
+                  <HomeItemTile key={index} id={item} />
+                  // </View>
+                ))}
+            </View>
+          </ScrollView>
+        </>
+      )}
     </ScrollView>
   );
 };

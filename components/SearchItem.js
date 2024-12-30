@@ -5,12 +5,12 @@ import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { CustomText as Text } from "@/components/CustomText";
 import { useUser } from "@/firebase/UserContext";
-import { addTowishList, removeFromWishlist } from "@/functions/users";
+import { addTowishList, removeFromWishlist } from "@/helpers/users";
 
 const SearchItem = ({ itemData }) => {
   const router = useRouter();
   const { user, setUserData } = useUser();
-
+  // console.log(itemData);
   return (
     <TouchableOpacity
       onPress={() => {
@@ -25,9 +25,37 @@ const SearchItem = ({ itemData }) => {
         width: 180,
       }}
     >
+      {itemData.sponsered && (
+        <View
+          style={{
+            backgroundColor: Colors.secondary,
+            position: "absolute",
+            zIndex: 10,
+            borderRadius: 5,
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 4,
+            left: 10,
+            top: 10,
+          }}
+        >
+          <View
+            style={{
+              width: 5,
+              height: 5,
+              borderRadius: 10,
+              backgroundColor: Colors.bg,
+            }}
+          />
+          <Text style={{ color: Colors.bg }}>Sponsered</Text>
+        </View>
+      )}
       <View
         style={{
-          width: "100%",
+          width: 180,
           height: 250,
           backgroundColor: Colors.secondary,
           borderRadius: 4,
@@ -83,25 +111,14 @@ const SearchItem = ({ itemData }) => {
             </TouchableOpacity>
           )}
         </View>
-        {itemData.imageUrls ? (
+        {itemData.imageUrls && (
           <Image
             source={{ uri: itemData.imageUrls[0] }}
             style={{
               resizeMode: "cover",
-              width: "100%",
-              height: "100%",
-              borderRadius: 4,
-            }}
-          />
-        ) : (
-          <Image
-            source={{
-              uri: "https://firebasestorage.googleapis.com/v0/b/sahyan-shop.appspot.com/o/images%2Fproducts%2FDj0pDUbrxhFyOhbnb3Jt%2Fimage.jpg?alt=media&token=6bde6a2e-cde3-497e-9836-eac937ad43eb",
-            }}
-            style={{
-              resizeMode: "cover",
-              width: "100%",
-              height: "100%",
+              width: 180,
+              height: 250,
+              flex: 1,
               borderRadius: 4,
             }}
           />
@@ -125,8 +142,8 @@ const SearchItem = ({ itemData }) => {
         >
           <Text
             style={{
-              fontFamily: "regular",
-              fontSize: 12,
+              fontFamily: "semibold",
+              fontSize: 16,
               color: Colors.text,
             }}
           >
@@ -141,15 +158,15 @@ const SearchItem = ({ itemData }) => {
             }}
           >
             <AntDesign name="star" size={12} color={Colors.text} />
-            {itemData && itemData.rating && (
+            {itemData && (
               <Text
                 style={{
-                  fontFamily: "regular",
+                  fontFamily: "medium",
                   fontSize: 12,
                   color: Colors.text,
                 }}
               >
-                {itemData.rating[0].toFixed(1)}
+                {itemData.rating ? itemData.rating[0].toFixed(1) : 0}
               </Text>
             )}
           </View>
@@ -161,7 +178,7 @@ const SearchItem = ({ itemData }) => {
             color: Colors.text,
           }}
         >
-          $ {itemData.price}
+          {itemData.currency} {itemData.price}
         </Text>
       </View>
     </TouchableOpacity>

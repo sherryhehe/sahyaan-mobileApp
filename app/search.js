@@ -15,17 +15,27 @@ import { Colors } from "@/constants/Colors";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getDataPaginated } from "@/functions/product";
+import { getDataPaginated } from "@/helpers/product";
 import SearchItem from "../components/SearchItem";
-import fetchBrandData from "@/functions/brand";
+import fetchBrandData from "@/helpers/brand";
 import Loading from "@/components/Loading";
-import { addToInterest } from "@/functions/users";
+import { addToInterest } from "@/helpers/users";
 const { width } = Dimensions.get("screen");
 import { useUser } from "@/firebase/UserContext";
 
-const FilterModal = ({ isVisible, onClose, onApplyFilters, searchResults }) => {
-  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
-  const [selectedCategory, setSelectedCategory] = useState("");
+const FilterModal = ({
+  isVisible,
+  onClose,
+  onApplyFilters,
+  searchResults,
+  currentFilters,
+}) => {
+  const [priceRange, setPriceRange] = useState(
+    currentFilters.priceRange || { min: "0", max: "100000" },
+  );
+  const [selectedCategory, setSelectedCategory] = useState(
+    currentFilters.category || "",
+  );
   const [selectedBrand, setSelectedBrand] = useState("");
   const [minRating, setMinRating] = useState("");
 
@@ -237,19 +247,24 @@ const FilterModal = ({ isVisible, onClose, onApplyFilters, searchResults }) => {
 const Search = () => {
   const router = useRouter();
   const { user, setUserData } = useUser();
-  const { query } = useLocalSearchParams();
+  const { query, category } = useLocalSearchParams();
   const [lastDoc, setLastDoc] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState(query || "");
   const [searchResults, setSearchResults] = useState([]);
-  const [filters, setFilters] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState(
+    category ? { category: category } : {},
+  );
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [filterLoading, setFilterLoading] = useState(false);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
   const applyFilters = (items, filters) => {
     return items.filter((item) => {
       if (
         searchQuery &&
+        searchQuery.trim() !== "" &&
         !item.name.toLowerCase().includes(searchQuery.toLowerCase())
       ) {
         return false;
@@ -286,41 +301,59 @@ const Search = () => {
       await performSearch(searchQuery);
     }
 
-    if (searchQuery) {
+    if (searchQuery || Object.keys(filters).length > 0) {
       init();
+    } else {
+      setInitialLoading(false);
     }
   }, []);
 
   useEffect(() => {
     async function addInterest() {
-      await addToInterest(user.id, searchQuery);
-      setUserData(true);
+      if (searchQuery && searchQuery.trim() !== "") {
+        await addToInterest(user.id, searchQuery);
+        setUserData(true);
+      }
     }
     if (searchResults && user) {
       addInterest();
     }
   }, [searchResults]);
 
-  const performSearch = async (query) => {
-    setLoading(true);
+  const performSearch = async (query, isLoadMore = false) => {
     try {
-      getDataPaginated("products", 10, lastDoc, 1).then(
-        async ({ data, lastDoc, hasMore }) => {
-          const filteredData = await applyFilters(
-            [...data, ...searchResults],
-            filters,
-          );
+      if (isLoadMore) {
+        setLoading(true);
+      } else if (!isLoadMore && !initialLoading) {
+        setFilterLoading(true);
+      }
 
-          setSearchResults(filteredData);
-          setLastDoc(lastDoc);
-          setHasMore(hasMore);
-        },
+      const {
+        data,
+        lastDoc: newLastDoc,
+        hasMore,
+      } = await getDataPaginated(
+        "products",
+        10,
+        isLoadMore ? lastDoc : null,
+        1,
       );
+
+      const filteredData = await applyFilters(data, filters);
+
+      setSearchResults((prevResults) =>
+        isLoadMore ? [...prevResults, ...filteredData] : filteredData,
+      );
+      setLastDoc(newLastDoc);
+      setHasMore(hasMore);
     } catch (error) {
       console.error("Error performing search: ", error);
       ToastAndroid.show("Error performing search", ToastAndroid.SHORT);
+    } finally {
+      setLoading(false);
+      setInitialLoading(false);
+      setFilterLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSearch = () => {
@@ -328,7 +361,9 @@ const Search = () => {
   };
 
   const handleLoadMore = () => {
-    performSearch(searchQuery);
+    if (!loading && hasMore) {
+      performSearch(searchQuery, true);
+    }
   };
 
   const renderItem = ({ item }) => <SearchItem itemData={item} />;
@@ -336,14 +371,24 @@ const Search = () => {
   const ListFooter = () => {
     if (!hasMore) return null;
     return (
-      <TouchableOpacity onPress={handleLoadMore} style={styles.loadMoreButton}>
-        <Text style={styles.loadMoreText}>Load more</Text>
+      <TouchableOpacity
+        onPress={handleLoadMore}
+        style={styles.loadMoreButton}
+        disabled={loading}
+      >
+        {loading ? (
+          <Loading />
+        ) : (
+          <Text style={styles.loadMoreText}>Load more</Text>
+        )}
       </TouchableOpacity>
     );
   };
-  if (loading) {
+
+  if (initialLoading) {
     return <Loading />;
   }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -379,33 +424,38 @@ const Search = () => {
           <MaterialIcons name="filter-alt" size={24} color={Colors.primary} />
         </TouchableOpacity>
       </View>
-      {loading ? (
-        <Text>Loading...</Text>
+
+      {filterLoading ? (
+        <View style={styles.centerLoader}>
+          <Loading />
+        </View>
       ) : (
         <FlatList
           data={searchResults}
-          keyExtractor={(item, index) => index}
+          keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
           ListEmptyComponent={
-            !loading &&
-            searchResults.length == 0 && (
-              <Text style={styles.noResultsText}>No results found</Text>
-            )
+            <Text style={styles.noResultsText}>No results found</Text>
           }
           numColumns={2}
           style={styles.resultsList}
           contentContainerStyle={styles.resultsContainer}
-          ListFooterComponent={hasMore && ListFooter}
+          ListFooterComponent={ListFooter}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
         />
       )}
+
       <FilterModal
         isVisible={isFilterModalVisible}
         onClose={() => setIsFilterModalVisible(false)}
         onApplyFilters={(newFilters) => {
+          console.log(newFilters);
           setFilters(newFilters);
           performSearch(searchQuery);
         }}
         searchResults={searchResults}
+        currentFilters={filters}
       />
     </SafeAreaView>
   );
@@ -415,6 +465,12 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.bg,
     flex: 1,
+  },
+
+  centerLoader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     paddingVertical: 5,

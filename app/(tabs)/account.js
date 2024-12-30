@@ -1,139 +1,160 @@
-import React from "react";
-import { View, Button, Image } from "react-native";
-import { db } from "@/firebase/firebase";
-import { uploadFile } from "@/firebase/StorageService";
-import { CustomText as Text } from "@/components/CustomText";
-import {
-  collection,
-  addDoc,
-  doc,
-  updateDoc,
-  arrayUnion,
-} from "firebase/firestore";
-import { logout } from "../../firebase/auth/AuthService";
-import { useRouter } from "expo-router";
+import React, { useCallback } from "react";
+import { useFocusEffect, router } from "expo-router";
 import { useUser } from "../../firebase/UserContext";
-import Loading from "../../components/Loading";
-import { Colors } from "@/constants/Colors";
-import TempImage from "@/image.jpg";
-// import { Image } from "expo-image";
-const AddDummyData = () => {
-  const { user, loading } = useUser();
-  const router = useRouter();
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
+import Icon from "react-native-vector-icons/Feather";
+import { CustomText as Text } from "@/components/CustomText";
+import { LogOut } from "lucide-react-native";
+import { signOut } from "firebase/auth";
+import { auth } from "../../firebase/firebase";
 
-  console.log(Image.resolveAssetSource(TempImage).uri);
-  const addData = async () => {
-    try {
-      // Add a dummy brand
-      /* const brandRef1 = await addDoc(collection(db, "brands"), {
-        name: "Brand ABC",
-        category: "Electronics",
-        products: [],
-      });
-      const brandRef2 = await addDoc(collection(db, "brands"), {
-        name: "Brand XYZ",
-        category: "Electronics",
-        products: [],
-      }); */
+const ProfileScreen = () => {
+  // const navigation = useNavigation();
+  // const router = useRouter();
+  const { user, setUserData } = useUser();
 
-      // Add a dummy product
-      for (let index = 2; index < 20; index++) {
-        const productRef = await addDoc(collection(db, "products"), {
-          name: `Item ${index}`,
-          category: ["Electronics", index % 2 == 0 ? "PQR" : "ABC"],
-          productType: "Gadget",
-          price: 299.99,
-          shortDescription: "A short description of Product ABC.",
-          deliveryTime: "3-5 business days",
-          returns: "30 days return policy",
-          rating: [4.1, 300],
-          sold: 500,
-          sale: 0,
-          seller: "njtG0KF7uEhrpMn8crNqbzjgKmj1",
-          brand: index % 2 == 0 ? "Bonanza" : "Outfitters",
-          keywords: [`keyword ${index}`],
-          variants: [
-            { name: "size", vals: ["small", "large", "x-large"] },
-            {
-              name: "color",
-              vals: ["red", "blue", "green"],
-            },
-          ],
-          specs: [{ name: "material", value: "cotton" }],
-          // variants: {
-          //   size: ["small", "large", "x-large"],
-          //   color: ["red", "blue", "green"],
-          // },
-        });
+  useFocusEffect(
+    useCallback(() => {
+      setUserData(true);
+      return () => {};
+    }, []),
+  );
 
-        const imageFiles = [TempImage, TempImage, TempImage];
-        // const imageFiles = [
-        //   require("@/image.jpg"),
-        //   require("@/image.jpg"),
-        //   require("@/image.jpg"),
-        // ];
-        const imageUrls = await Promise.all(
-          imageFiles.map(async (image, i) => {
-            const filePath = `images/products/${productRef.id}/${i}.jpg`;
-            const imageData = await fetch(Image.resolveAssetSource(image).uri);
-            //console.log(imageData.blob());
-            await uploadFile(await imageData.blob(), filePath);
-            return filePath;
-          }),
-        );
-        await updateDoc(productRef, {
-          images: imageUrls,
-          /* images: [
-            "https://firebasestorage.googleapis.com/v0/b/sahyan-shop.appspot.com/o/images%2Fproducts%2FDj0pDUbrxhFyOhbnb3Jt%2Fimage.jpg?alt=media&token=6bde6a2e-cde3-497e-9836-eac937ad43eb",
-            "https://firebasestorage.googleapis.com/v0/b/sahyan-shop.appspot.com/o/images%2Fproducts%2FDj0pDUbrxhFyOhbnb3Jt%2Fimage.jpg?alt=media&token=6bde6a2e-cde3-497e-9836-eac937ad43eb",
-            "https://firebasestorage.googleapis.com/v0/b/sahyan-shop.appspot.com/o/images%2Fproducts%2FDj0pDUbrxhFyOhbnb3Jt%2Fimage.jpg?alt=media&token=6bde6a2e-cde3-497e-9836-eac937ad43eb",
-          ], */
-        });
+  const menuItems = [
+    { icon: "user", label: "Edit Profile", route: "editProfile" },
+    // { icon: "map-pin", label: "Shopping Address", route: "Address" },
+    {
+      icon: "heart",
+      label: `Wishlist (${user && user.wishlist ? user.wishlist.length : 0})`,
+      route: "wishlist",
+    },
+    {
+      icon: "clock",
+      label: `Order History (${user && user.orders ? user.orders.length : 0}) `,
+      route: "orders",
+    },
+    // { icon: "bell", label: "Notification", route: "Notifications" },
+  ];
 
-        // Update the brand with the product ID
-        await updateDoc(doc(db, "seller", "njtG0KF7uEhrpMn8crNqbzjgKmj1"), {
-          products: arrayUnion(productRef.id),
-        });
-        if (index % 2 == 0) {
-          await updateDoc(doc(db, "promotions", "products"), {
-            bottom: arrayUnion(productRef.id),
-          });
-        } else {
-          // await updateDoc(brandRef2, {
-          //   products: arrayUnion(productRef.id),
-          // });
-
-          await updateDoc(doc(db, "promotions", "products"), {
-            top: arrayUnion(productRef.id),
-            bottom: arrayUnion(productRef.id),
-          });
-        }
-      }
-
-      // //  console.log("Dummy data added successfully");
-    } catch (error) {
-      console.error("Error adding dummy data:", error);
-    }
-  };
+  const MenuItem = ({ icon, label, onPress }) => (
+    <TouchableOpacity
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: "#eee",
+      }}
+      onPress={onPress}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Icon name={icon} size={20} color="#666" />
+        <Text style={{ fontSize: 16, marginLeft: 16, color: "#333" }}>
+          {label}
+        </Text>
+      </View>
+      <Icon name="chevron-right" size={20} color="#CCCCCC" />
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={{ padding: 20, backgroundColor: Colors.bg }}>
-      <Button title="Add Dummy Data" onPress={addData} />
-      <Button
-        title="Logut"
-        onPress={async () => {
-          await logout();
-          router.replace("/login");
-        }}
-      />
-      <Text>{user && user.displayName}</Text>
-      <Image source={TempImage} />
-      {user &&
-        user.wishlist &&
-        user.wishlist.map((item) => <Text key={item}>{item}</Text>)}
-      <Loading />
-    </View>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#f0f0f0",
+        paddingTop: 30,
+      }}
+    >
+      <ScrollView>
+        <View
+          style={{
+            alignItems: "center",
+            padding: 24,
+            backgroundColor: "#f0f0f0",
+          }}
+        >
+          <View
+            style={{
+              width: 96,
+              height: 96,
+              borderRadius: 48,
+              overflow: "hidden",
+              backgroundColor: "#fce7f3",
+            }}
+          >
+            {user && user.photoURL ? (
+              <Image
+                source={{ uri: user.photoURL }}
+                style={{ width: "100%", height: "100%" }}
+              />
+            ) : (
+              <Image
+                source={{ uri: "https://via.placeholder.com/96" }}
+                style={{ width: "100%", height: "100%" }}
+              />
+            )}
+          </View>
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "600",
+              marginTop: 16,
+              textTransform: "capitalize",
+            }}
+          >
+            {user && user.displayName}
+          </Text>
+        </View>
+
+        <View style={{ backgroundColor: "#f0f0f0", marginTop: 16 }}>
+          {menuItems.map((item, index) => (
+            <MenuItem
+              key={index}
+              icon={item.icon}
+              label={item.label}
+              onPress={() => router.push(`/${item.route}`)}
+            />
+          ))}
+
+          {user && router && (
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: "#eee",
+              }}
+              onPress={async () => {
+                await signOut(auth).then(() => {
+                  // router.replace("/login");
+                });
+                // navigator.
+                // router.replace("/logout");
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <LogOut size={20} color="#E3242B" />
+                <Text
+                  style={{ fontSize: 16, marginLeft: 16, color: "#E3242B" }}
+                >
+                  Logout
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
-export default AddDummyData;
+export default ProfileScreen;

@@ -1,20 +1,18 @@
 {
   "expo": {
-    "name": "sahyaan-shopping",
+    "name": "Sahyaan",
     "slug": "sahyaan-shopping",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.jpeg",
-    "scheme": "myapp",
+    "scheme": "sahyaan-shopping",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.jpeg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "assets/fonts/*"
-    ],
+    "assetBundlePatterns": ["assets/fonts/*"],
     "ios": {
       "bundleIdentifier": "com.sahyaan.app",
       "supportsTablet": true,
@@ -27,17 +25,26 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.jpeg",
         "backgroundColor": "#ffffff"
-      }
+      },
+
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "sahyaan-shopping"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": [
-      "expo-router",
-      "@react-native-google-signin/google-signin"
-    ],
+    "plugins": ["expo-router", "@react-native-google-signin/google-signin"],
     "experiments": {
       "typedRoutes": true
     },
