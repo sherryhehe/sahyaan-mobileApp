@@ -5,6 +5,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "@/firebase/firebase";
 import { useUser } from "@/firebase/UserContext";
 
+import "expo-router/entry";
 export default function Index() {
   // const [user, setUser] = useState(null);
   const router = useRouter();

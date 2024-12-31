@@ -100,7 +100,6 @@ export const getRecommendationData = async (userInterests) => {
     and(
       or(where("country", "==", user.country), where("country", "==", "other")),
     ),
-
     limit(50),
   );
   const productsSnapshot = await getDocs(productsQuery);
@@ -111,29 +110,31 @@ export const getRecommendationData = async (userInterests) => {
   );
   const products = await Promise.all(productsPromise);
 
-  // // console.log("Products", products);
+  // If there are no interests, return all products
+  let filteredProducts = limitedInterests.length
+    ? products.filter((product) => {
+        return limitedInterests.some(
+          (interest) =>
+            (product.category && product.category.includes(interest)) ||
+            (product.keywords && product.keywords.includes(interest)) ||
+            (product.name &&
+              product.name.toLowerCase().includes(interest.toLowerCase())) ||
+            (product.shortDescription &&
+              product.shortDescription
+                .toLowerCase()
+                .includes(interest.toLowerCase())),
+        );
+      })
+    : products;
 
-  // Filter the products based on user interests
-  const filteredProducts = products.filter((product) => {
-    return limitedInterests.some(
-      (interest) =>
-        (product.category && product.category.includes(interest)) ||
-        (product.keywords && product.keywords.includes(interest)) ||
-        (product.name &&
-          product.name.toLowerCase().includes(interest.toLowerCase())) ||
-        (product.shortDescription &&
-          product.shortDescription
-            .toLowerCase()
-            .includes(interest.toLowerCase())),
-    );
-  });
-  // // console.log("Filters", filteredProducts);
-  // Sort the filtered products by relevance (number of matching interests)
-  filteredProducts.sort((a, b) => {
-    const scoreA = calculateRelevanceScore(a, limitedInterests);
-    const scoreB = calculateRelevanceScore(b, limitedInterests);
-    return scoreB - scoreA;
-  });
+  // Sort the filtered products by relevance (if there are interests)
+  if (limitedInterests.length) {
+    filteredProducts.sort((a, b) => {
+      const scoreA = calculateRelevanceScore(a, limitedInterests);
+      const scoreB = calculateRelevanceScore(b, limitedInterests);
+      return scoreB - scoreA;
+    });
+  }
 
   // Return the top 100 product IDs (or all if less than 100)
   return filteredProducts.slice(0, 100).map((product) => product.id);
