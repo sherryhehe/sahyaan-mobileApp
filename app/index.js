@@ -10,16 +10,16 @@ export default function Index() {
   // const [user, setUser] = useState(null);
   const router = useRouter();
   const { user, loading } = useUser();
-  console.log("index");
+  // console.log("index");
 
   useEffect(() => {
     const handleDeepLink = ({ url }) => {
       // Parse the URL to get the ID
       const match = url.match(/seller\/(\d+)/);
-      console.log("DL");
+      // console.log("DL");
       if (match) {
         const id = match[1];
-        console.log(id);
+        // console.log(id);
         router.push(`/seller/${id}`);
       }
     };

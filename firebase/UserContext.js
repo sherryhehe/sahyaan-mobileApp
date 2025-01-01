@@ -20,7 +20,7 @@ export const useUser = () => {
     try {
       let userDoc;
       if (update) {
-        // // console.log("UPDATE");
+        // console.log("UPDATE");
         userDoc = await queryDoc("users", authUser.uid);
         if (userDoc) {
           setUserData({

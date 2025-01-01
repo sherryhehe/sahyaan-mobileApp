@@ -55,7 +55,7 @@ export default function explore() {
 
     const recommendationStartTime = Date.now();
     const data = await getRecommendationData(interests);
-    console.log("unfil ", data);
+    // console.log("unfil ", data);
     // const data = dataUnfiltered.filter((item) =>
     //   [user.country, "other"].includes(item.coutry),
     // );
@@ -85,7 +85,7 @@ export default function explore() {
       //     Date.now() - promiseAllStartTime
       //   }ms`
       // );
-      // // console.log(detailedData);
+      // console.log(detailedData);
       const setStateStartTime = Date.now();
       setExploreData(detailedData);
       setLastLoadedIndex(INITIAL_BATCH_SIZE);
@@ -108,7 +108,7 @@ export default function explore() {
     try {
       const nextBatch = allDataRef.current.slice(
         lastLoadedIndex,
-        lastLoadedIndex + BATCH_SIZE,
+        lastLoadedIndex + BATCH_SIZE
       );
       if (nextBatch.length === 0) {
         setAllDataLoaded(true);
@@ -278,14 +278,14 @@ export default function explore() {
                         setUserData(true);
                         ToastAndroid.show(
                           "Successfully removed to wishlist",
-                          ToastAndroid.SHORT,
+                          ToastAndroid.SHORT
                         );
                         // You can add some user feedback here, like a toast notification
                         // //  // console.log("Product added to cart");
                       } catch (error) {
                         ToastAndroid.show(
                           "Couldnt Add product to wishlist",
-                          ToastAndroid.SHORT,
+                          ToastAndroid.SHORT
                         );
                         console.error("Error!", error);
                         // Handle the error, maybe show an error message to the user
@@ -307,14 +307,14 @@ export default function explore() {
                         setUserData(true);
                         ToastAndroid.show(
                           "Successfully added to wishlist",
-                          ToastAndroid.SHORT,
+                          ToastAndroid.SHORT
                         );
                         // You can add some user feedback here, like a toast notification
                         // //  // console.log("Product added to cart");
                       } catch (error) {
                         ToastAndroid.show(
                           "Couldnt Add product to wishlist",
-                          ToastAndroid.SHORT,
+                          ToastAndroid.SHORT
                         );
                         console.error("Error!", error);
                         // Handle the error, maybe show an error message to the user

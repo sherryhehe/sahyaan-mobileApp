@@ -32,9 +32,9 @@ const { height } = Dimensions.get("window");
 //   intrests: [],
 // };
 const countryData = [
-  { label: "Pakistan", value: "pk" },
-  { label: "India", value: "in" },
-  { label: "Bangladesh", value: "bd" },
+  { label: "Pakistan", value: "pakistan" },
+  { label: "India", value: "india" },
+  { label: "Bangladesh", value: "bangladesh" },
 ];
 
 export default function Signup() {
@@ -67,7 +67,7 @@ export default function Signup() {
         cart: [],
         wishlist: [],
         history: [],
-        intrests: [],
+        interests: [],
         country: country,
       });
 

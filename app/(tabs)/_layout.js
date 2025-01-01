@@ -16,7 +16,6 @@ import { useUser } from "@/firebase/UserContext";
 export default function TabLayout() {
   const router = useRouter();
   const { user, loading } = useUser();
-  console.log("index");
   useEffect(() => {
     if (!loading) {
       if (!user) {

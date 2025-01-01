@@ -32,7 +32,7 @@ export default function Login() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("INIT LOGINT");
+    // console.log("INIT LOGINT");
     setLoading(false);
   }, []);
 
@@ -49,7 +49,7 @@ export default function Login() {
             history: [],
             interests: [],
           },
-          false,
+          false
         );
         router.replace("/explore");
       } catch (error) {
@@ -65,7 +65,9 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     const user = await googleSignin();
+
     try {
+      const response = await axios.get("http://ip-api.com/json/");
       // //  // console.log(user);
       await addDataByID(
         `users`,
@@ -75,8 +77,9 @@ export default function Login() {
           wishlist: [],
           history: [],
           interests: [],
+          country: response.data.countryCode.toLowerCase(),
         },
-        false,
+        false
       );
       router.replace("/explore");
     } catch (err) {
@@ -101,7 +104,7 @@ export default function Login() {
           interests: [],
           country: response.data.countryCode.toLowerCase(),
         },
-        false,
+        false
       );
       // Navigate to the main screen after login
       router.replace("/explore");

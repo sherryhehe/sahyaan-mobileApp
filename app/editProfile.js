@@ -5,6 +5,7 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  Dimensions,
 } from "react-native";
 import { CustomText as Text } from "@/components/CustomText";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,6 +16,15 @@ import { db, auth } from "@/firebase/firebase";
 import { updateProfile } from "firebase/auth";
 import { ArrowLeft, Save } from "lucide-react-native";
 import { useRouter } from "expo-router";
+
+import { Dropdown } from "react-native-element-dropdown";
+
+const { width } = Dimensions.get("window");
+const countryData = [
+  { label: "Pakistan", value: "pakistan" },
+  { label: "India", value: "india" },
+  { label: "Bangladesh", value: "bangladesh" },
+];
 
 const InputField = ({
   label,
@@ -100,13 +110,12 @@ export default function EditProfilePage() {
         Alert.alert("Error", "All fields are required");
         return;
       }
-
       // Update Firestore document
       await updateDoc(doc(db, "users", user.uid), {
         address: formData.address,
         city: formData.city,
         country: formData.country,
-        currency: formData.currency,
+        currency: formData.currency.toLowerCase(),
         phoneNumber: parseInt(formData.phoneNumber),
       });
 
@@ -163,12 +172,52 @@ export default function EditProfilePage() {
           onChangeText={(text) => setFormData({ ...formData, city: text })}
         />
 
-        <InputField
+        {/* <InputField
           label="Country"
           value={formData.country}
           onChangeText={(text) => setFormData({ ...formData, country: text })}
-        />
+        /> */}
 
+        <Dropdown
+          style={{
+            fontFamily: "extraLight",
+            fontSize: 16,
+            height: 45,
+            width: "100%",
+            borderColor: Colors.secondary,
+            borderWidth: 1,
+            marginBottom: 12,
+            // maxWidth: 260,
+            borderRadius: 10,
+            paddingHorizontal: 8,
+          }}
+          fontFamily="extraLight"
+          containerStyle={{
+            fontSize: 16,
+
+            width: "100%",
+            borderColor: Colors.secondary,
+            borderWidth: 1,
+            marginBottom: 12,
+            maxWidth: width - 30,
+
+            borderRadius: 10,
+            overflow: "hidden",
+            // paddingHorizontal: 8,
+          }}
+          placeholderStyle={{
+            fontFamily: "extraLight",
+            fontSize: 16,
+          }}
+          data={countryData}
+          labelField="label"
+          valueField="value"
+          placeholder="Select Country"
+          value={formData.country}
+          onChange={(item) => {
+            setFormData({ ...formData, country: item.value });
+          }}
+        />
         <InputField
           label="Currency"
           value={formData.currency}

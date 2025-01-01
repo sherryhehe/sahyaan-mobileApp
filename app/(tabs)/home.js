@@ -88,14 +88,15 @@ const index = () => {
       user.interest && user.interest.length > 0 ? user.interest : [];
     const data = await getRecommendationData(interests);
     // const data = dataUnfiltered.filter((item) => {
-    //   console.log(item);
+    //   // console.log(item);
     //   return [user.country, "other"].includes(item.coutry);
     // });
     // const feed_temp = [data.slice(0, 20), data.slice(20, 40), data.slice(40)];
     // console.log(feed_temp);
+    // console.log(data);
     setFeed([data.slice(0, 10), data.slice(10, 20), data.slice(20)]);
   }
-
+  // console.log(feed);
   async function fetchProductPromotions() {
     const data = await queryDoc("promotions", "products");
     setProductPromotionsTop(
@@ -104,11 +105,11 @@ const index = () => {
             .filter(
               (item) =>
                 new Date(item.expiry) <= new Date() &&
-                [user.country, "other"].includes(item.coutry),
+                [user.country, "other"].includes(item.coutry)
             )
             .sort(() => Math.random() - 0.5)
             .map((item) => item.id)
-        : [],
+        : []
     );
     setProductPromotionsBottom(
       data["bottom"]
@@ -116,11 +117,11 @@ const index = () => {
             .filter(
               (item) =>
                 new Date(item.expiry) <= new Date() &&
-                [user.country, "other"].includes(item.coutry),
+                [user.country, "other"].includes(item.coutry)
             )
             .sort(() => Math.random() - 0.5)
             .map((item) => item.id)
-        : [],
+        : []
     );
     setProductPromotionsMid(
       data["middle"]
@@ -128,11 +129,11 @@ const index = () => {
             .filter(
               (item) =>
                 new Date(item.expiry) <= new Date() &&
-                [user.country, "other"].includes(item.coutry),
+                [user.country, "other"].includes(item.coutry)
             )
             .sort(() => Math.random() - 0.5)
             .map((item) => item.id)
-        : [],
+        : []
     );
   }
 
@@ -173,7 +174,7 @@ const index = () => {
             //   text={"Electronics"}
             // />
           ))}
-        </View>,
+        </View>
       );
     }
 
@@ -318,42 +319,43 @@ const index = () => {
           </ScrollView>
         </>
       )}
-      <View
-        style={{
-          marginTop: 20,
-          backgroundColor: Colors.secondary,
-          paddingVertical: 8,
-          // paddingHorizontal: 10,
-          minWidth: 150,
-          maxWidth: 150,
-          borderRadius: 7,
-          marginBottom: 12,
-          alignItems: "center",
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: "regular",
-            color: Colors.bg,
-            fontSize: 18,
-            fontFamily: "regular",
-          }}
-        >
-          Picked For you
-        </Text>
-      </View>
-
-      <ScrollView
-        style={{
-          flexDirection: "row",
-        }}
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-      >
-        {feed &&
-          feed[0] &&
-          renderColumns([...feed[0], ...feed[0], ...feed[0], ...feed[0]])}
-      </ScrollView>
+      {feed && feed[0] && feed[0].length ? (
+        <>
+          <View
+            style={{
+              marginTop: 20,
+              backgroundColor: Colors.secondary,
+              paddingVertical: 8,
+              // paddingHorizontal: 10,
+              minWidth: 150,
+              maxWidth: 150,
+              borderRadius: 7,
+              marginBottom: 12,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "regular",
+                color: Colors.bg,
+                fontSize: 18,
+                fontFamily: "regular",
+              }}
+            >
+              Picked For you
+            </Text>
+          </View>
+          <ScrollView
+            style={{
+              flexDirection: "row",
+            }}
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+          >
+            {renderColumns(feed[0])}
+          </ScrollView>
+        </>
+      ) : null}
 
       {productPromotionsMid && productPromotionsMid.length > 0 && (
         <>
@@ -399,6 +401,44 @@ const index = () => {
         </>
       )}
 
+      {feed && feed[1] && feed[1].length ? (
+        <>
+          <View
+            style={{
+              marginTop: 20,
+              backgroundColor: Colors.secondary,
+              paddingVertical: 8,
+              // paddingHorizontal: 10,
+              minWidth: 150,
+              maxWidth: 150,
+              borderRadius: 7,
+              marginBottom: 12,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "regular",
+                color: Colors.bg,
+                fontSize: 18,
+                fontFamily: "regular",
+              }}
+            >
+              Picked For you
+            </Text>
+          </View>
+          <ScrollView
+            style={{
+              flexDirection: "row",
+            }}
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+          >
+            {renderColumns(feed[1])}
+          </ScrollView>
+        </>
+      ) : null}
+
       {productPromotionsBottom && productPromotionsBottom.length > 0 && (
         <>
           <View
@@ -442,6 +482,43 @@ const index = () => {
           </ScrollView>
         </>
       )}
+      {feed && feed[2] && feed[2].length ? (
+        <>
+          <View
+            style={{
+              marginTop: 20,
+              backgroundColor: Colors.secondary,
+              paddingVertical: 8,
+              // paddingHorizontal: 10,
+              minWidth: 150,
+              maxWidth: 150,
+              borderRadius: 7,
+              marginBottom: 12,
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "regular",
+                color: Colors.bg,
+                fontSize: 18,
+                fontFamily: "regular",
+              }}
+            >
+              Picked For you
+            </Text>
+          </View>
+          <ScrollView
+            style={{
+              flexDirection: "row",
+            }}
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+          >
+            {renderColumns(feed[2])}
+          </ScrollView>
+        </>
+      ) : null}
     </ScrollView>
   );
 };

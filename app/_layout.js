@@ -20,7 +20,6 @@ import {
 } from "@expo-google-fonts/montserrat";
 
 export default function RootLayout() {
-  console.log("sada");
   // const [fontsLoaded, setFontsLoaded] = useState(false);
 
   //   useEffect(() => {

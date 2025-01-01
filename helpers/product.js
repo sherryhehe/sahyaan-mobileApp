@@ -38,6 +38,7 @@ export default fetchProductData = async (productId) => {
     const brandData = await fetchBrandData(productData.seller);
     // console.log(brandData);
     productData.seller = brandData.name;
+    productData.country = brandData.country;
   }
 
   // Fetch image URLs
@@ -49,7 +50,7 @@ export default fetchProductData = async (productId) => {
     productData.imageUrls = await Promise.all(imagePromises);
   }
   await cacheService.set(productId, productData, "products");
-  // // //  // console.log(productData);
+  // console.log(productData);
   return productData;
 };
 
@@ -90,16 +91,16 @@ export const getDataPaginated = async (
 
 export const getRecommendationData = async (userInterests) => {
   // Take only the last 20 interests and remove duplicates
-  const limitedInterests = Array.from(new Set(userInterests.slice(-20)));
+  const limitedInterests = Array.from(new Set(userInterests)).slice(-20);
 
   const u = auth.currentUser;
   const user = await queryDoc("users", u.uid);
   // Fetch the first 50 products from Firebase
   const productsQuery = query(
     collection(db, "products"),
-    and(
-      or(where("country", "==", user.country), where("country", "==", "other")),
-    ),
+    // and(
+    //   or(where("country", "==", user.country), where("country", "==", "other")),
+    // ),
     limit(50),
   );
   const productsSnapshot = await getDocs(productsQuery);
@@ -111,6 +112,8 @@ export const getRecommendationData = async (userInterests) => {
   const products = await Promise.all(productsPromise);
 
   // If there are no interests, return all products
+  // console.log(limitedInterests);
+  // console.log(products);
   let filteredProducts = limitedInterests.length
     ? products.filter((product) => {
         return limitedInterests.some(
@@ -135,9 +138,13 @@ export const getRecommendationData = async (userInterests) => {
       return scoreB - scoreA;
     });
   }
-
+  filteredProducts.push(...products);
+  // console.log("temp: ", filteredProducts);
+  // console.log(products);
   // Return the top 100 product IDs (or all if less than 100)
-  return filteredProducts.slice(0, 100).map((product) => product.id);
+  return Array.from(new Set(filteredProducts))
+    .slice(0, 100)
+    .map((product) => product.id);
 };
 
 // Helper function to calculate relevance score

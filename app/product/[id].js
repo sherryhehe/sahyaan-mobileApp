@@ -470,7 +470,7 @@ const SellerTile = ({ id }) => {
 
   async function getSeller(idx) {
     const data = await fetchBrandData(idx);
-    console.log(data);
+    // console.log(data);
     setUser(data);
   }
 

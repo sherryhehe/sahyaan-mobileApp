@@ -25,7 +25,7 @@ import { functions } from "../firebase/firebase";
 
 const CheckoutItemTile = ({ item }) => {
   // const router = useRouter();
-  // // console.log(item);
+  // console.log(item);
   if (item) {
     return (
       <TouchableOpacity
@@ -596,7 +596,7 @@ export default function CheckoutPage() {
     try {
       const createPaymentIntent = httpsCallable(
         functions,
-        "createPaymentIntent",
+        "createPaymentIntent"
       );
       const response = await createPaymentIntent({
         amount: Math.round(totalCost * 100), // Convert to cents and ensure it's an integer
@@ -626,7 +626,7 @@ export default function CheckoutPage() {
     if (!paymentSheetEnabled) {
       Alert.alert(
         "Payment not ready",
-        "Please wait while we set up your payment.",
+        "Please wait while we set up your payment."
       );
       return;
     }
@@ -705,7 +705,7 @@ export default function CheckoutPage() {
           console.error("Error processing order:", error);
           throw error; // Rethrow to be caught by the parent try-catch
         }
-      }),
+      })
     ).then(async () => {
       // Clear the user's cart after successful payment and order processing
       await updateDoc(doc(db, "users", user.uid), { cart: [] });

@@ -36,7 +36,7 @@ const WishlistScreen = () => {
   };
 
   const renderWishlistItem = ({ item }) => {
-    // // console.log("IMAGE: ", item);
+    // console.log("IMAGE: ", item);
     return (
       <View
         style={{

@@ -31,10 +31,10 @@ const FilterModal = ({
   currentFilters,
 }) => {
   const [priceRange, setPriceRange] = useState(
-    currentFilters.priceRange || { min: "0", max: "100000" },
+    currentFilters.priceRange || { min: "0", max: "100000" }
   );
   const [selectedCategory, setSelectedCategory] = useState(
-    currentFilters.category || "",
+    currentFilters.category || ""
   );
   const [selectedBrand, setSelectedBrand] = useState("");
   const [minRating, setMinRating] = useState("");
@@ -75,7 +75,7 @@ const FilterModal = ({
 
       const uniqueCategories = [...new Set(categories)].filter(
         (category) =>
-          category !== undefined && category !== null && category !== "",
+          category !== undefined && category !== null && category !== ""
       );
 
       return uniqueCategories;
@@ -253,7 +253,7 @@ const Search = () => {
   const [searchQuery, setSearchQuery] = useState(query || "");
   const [searchResults, setSearchResults] = useState([]);
   const [filters, setFilters] = useState(
-    category ? { category: category } : {},
+    category ? { category: category } : {}
   );
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -336,13 +336,13 @@ const Search = () => {
         "products",
         10,
         isLoadMore ? lastDoc : null,
-        1,
+        1
       );
 
       const filteredData = await applyFilters(data, filters);
 
       setSearchResults((prevResults) =>
-        isLoadMore ? [...prevResults, ...filteredData] : filteredData,
+        isLoadMore ? [...prevResults, ...filteredData] : filteredData
       );
       setLastDoc(newLastDoc);
       setHasMore(hasMore);
@@ -450,7 +450,7 @@ const Search = () => {
         isVisible={isFilterModalVisible}
         onClose={() => setIsFilterModalVisible(false)}
         onApplyFilters={(newFilters) => {
-          console.log(newFilters);
+          // console.log(newFilters);
           setFilters(newFilters);
           performSearch(searchQuery);
         }}

@@ -61,7 +61,7 @@ const OrderDetailsScreen = () => {
   useEffect(() => {
     async function getData() {
       getOrderDetails(id).then((data) => {
-        console.log(data);
+        // console.log(data);
         setOrder(data);
       });
     }
@@ -145,7 +145,7 @@ const OrderDetailsScreen = () => {
 
       // Update each product with the review
       for (const product of order.prods) {
-        // console.log(product)
+        // console.log(product);
         const productRef = doc(db, "products", product.id);
         const d = await updateDoc(productRef, {
           reviews: arrayUnion({
@@ -153,7 +153,7 @@ const OrderDetailsScreen = () => {
             orderId: order.id,
           }),
         });
-        console.log(d);
+        // console.log(d);
       }
 
       setOrder(updatedOrder);
@@ -227,7 +227,7 @@ const OrderDetailsScreen = () => {
           }
           style={{
             backgroundColor: ["processing", "confirmed", "pending"].includes(
-              order.status,
+              order.status
             )
               ? "#ff4444"
               : "gray",
@@ -245,8 +245,8 @@ const OrderDetailsScreen = () => {
             {order.status === "cancelled"
               ? "Cancelled"
               : ["processing", "confirmed", "pending"].includes(order.status)
-                ? "Cancel Order"
-                : "Cannot Cancel"}
+              ? "Cancel Order"
+              : "Cannot Cancel"}
           </Text>
         </TouchableOpacity>
       );
