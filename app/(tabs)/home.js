@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ToastAndroid,
   ImageBackground,
+  FlatList,
 } from "react-native";
 import { Colors } from "@/constants/Colors";
 import React, { useEffect, useState, lazy } from "react";
@@ -105,11 +106,11 @@ const index = () => {
             .filter(
               (item) =>
                 new Date(item.expiry) <= new Date() &&
-                [user.country, "other"].includes(item.coutry)
+                [user.country, "other"].includes(item.coutry),
             )
             .sort(() => Math.random() - 0.5)
             .map((item) => item.id)
-        : []
+        : [],
     );
     setProductPromotionsBottom(
       data["bottom"]
@@ -117,11 +118,11 @@ const index = () => {
             .filter(
               (item) =>
                 new Date(item.expiry) <= new Date() &&
-                [user.country, "other"].includes(item.coutry)
+                [user.country, "other"].includes(item.coutry),
             )
             .sort(() => Math.random() - 0.5)
             .map((item) => item.id)
-        : []
+        : [],
     );
     setProductPromotionsMid(
       data["middle"]
@@ -129,11 +130,11 @@ const index = () => {
             .filter(
               (item) =>
                 new Date(item.expiry) <= new Date() &&
-                [user.country, "other"].includes(item.coutry)
+                [user.country, "other"].includes(item.coutry),
             )
             .sort(() => Math.random() - 0.5)
             .map((item) => item.id)
-        : []
+        : [],
     );
   }
 
@@ -174,7 +175,7 @@ const index = () => {
             //   text={"Electronics"}
             // />
           ))}
-        </View>
+        </View>,
       );
     }
 
@@ -345,14 +346,20 @@ const index = () => {
               Picked For you
             </Text>
           </View>
+
           <ScrollView
-            style={{
+            contentContainerStyle={{
               flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              // padding: 10, // Adjust padding as needed
             }}
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
           >
-            {renderColumns(feed[0])}
+            {feed[0] &&
+              feed[0].map((item, index) => (
+                <HomeItemTile id={item} key={index} />
+              ))}
           </ScrollView>
         </>
       ) : null}
@@ -428,13 +435,18 @@ const index = () => {
             </Text>
           </View>
           <ScrollView
-            style={{
+            contentContainerStyle={{
               flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              // padding: 10, // Adjust padding as needed
             }}
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
           >
-            {renderColumns(feed[1])}
+            {feed[1] &&
+              feed[1].map((item, index) => (
+                <HomeItemTile id={item} key={index} />
+              ))}
           </ScrollView>
         </>
       ) : null}
@@ -509,13 +521,18 @@ const index = () => {
             </Text>
           </View>
           <ScrollView
-            style={{
+            contentContainerStyle={{
               flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              // padding: 10, // Adjust padding as needed
             }}
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
           >
-            {renderColumns(feed[2])}
+            {feed[2] &&
+              feed[2].map((item, index) => (
+                <HomeItemTile id={item} key={index} />
+              ))}
           </ScrollView>
         </>
       ) : null}

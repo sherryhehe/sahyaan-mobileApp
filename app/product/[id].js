@@ -46,21 +46,26 @@ const Product = () => {
       setData(prodData);
       let isUpdated;
 
-      await addToInterest(user.id, prodData.name).then((update) => {
-        isUpdated = update;
-      });
-      await addToInterest(user.id, prodData.keywords).then((update) => {
-        if (!isUpdated) {
-          isUpdated = update;
-        }
-      });
-      setUserData(isUpdated);
-
       const initialvariants = {};
       prodData.variants.forEach((v) => {
         initialvariants[v.name] = v.vals[0];
       });
       setvariant(initialvariants);
+      setLoading(false);
+
+      // console.log("Add prod");
+      await addToInterest(user, prodData.name).then((update) => {
+        isUpdated = update;
+      });
+      // console.log("Add name");
+      await addToInterest(user, prodData.keywords).then((update) => {
+        if (!isUpdated) {
+          isUpdated = update;
+        }
+      });
+
+      // console.log("Add key");
+      setUserData(isUpdated);
     } catch (error) {
       console.error("Error fetching product data:", error);
     }
@@ -70,12 +75,12 @@ const Product = () => {
   useEffect(() => {
     async function init() {
       setLoading(true);
-      if (user) {
-        await fetchData();
-        setLoading(false);
-      }
+
+      await fetchData();
     }
-    init();
+    if (user && id) {
+      init();
+    }
   }, [id, user]);
 
   const handleScroll = (event) => {
@@ -93,7 +98,7 @@ const Product = () => {
       // You can add some user feedback here, like a toast notification
       // //  // console.log("Product added to cart");
     } catch (error) {
-      // console.error("Failed to add product to cart", error);
+      console.error("Failed to add product to cart", error);
       ToastAndroid.show("Couldnt Add product to cart", ToastAndroid.SHORT);
       // Handle the error, maybe show an error message to the user
     }
@@ -301,7 +306,7 @@ const Product = () => {
             display: "flex",
             flexDirection: "row",
             justifyContent: "space-evenly",
-            width: "49%",
+            width: "100%",
             alignItems: "center",
           }}
           onPress={handleAddToCart}
@@ -317,7 +322,7 @@ const Product = () => {
             Add to Cart
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={{
             backgroundColor: Colors.primary,
             paddingHorizontal: 6,
@@ -340,7 +345,7 @@ const Product = () => {
           >
             CheckOut
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </SafeAreaView>
   );

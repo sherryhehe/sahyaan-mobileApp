@@ -22,6 +22,7 @@ import { addDataByID } from "../firebase/FirestoreService";
 
 import { Ionicons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
+import axios from "axios";
 const { height } = Dimensions.get("screen");
 
 export default function Login() {
@@ -41,7 +42,7 @@ export default function Login() {
     login(email, password).then(async (res) => {
       try {
         await addDataByID(
-          `users`,
+          "users",
           res.uid,
           {
             cart: [],
@@ -49,7 +50,7 @@ export default function Login() {
             history: [],
             interests: [],
           },
-          false
+          false,
         );
         router.replace("/explore");
       } catch (error) {
@@ -79,7 +80,7 @@ export default function Login() {
           interests: [],
           country: response.data.countryCode.toLowerCase(),
         },
-        false
+        false,
       );
       router.replace("/explore");
     } catch (err) {
@@ -104,7 +105,7 @@ export default function Login() {
           interests: [],
           country: response.data.countryCode.toLowerCase(),
         },
-        false
+        false,
       );
       // Navigate to the main screen after login
       router.replace("/explore");

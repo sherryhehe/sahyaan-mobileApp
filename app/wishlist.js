@@ -20,7 +20,7 @@ const WishlistScreen = () => {
     if (user && user.wishlist) {
       const fetch_data = async () =>
         await Promise.all(
-          user.wishlist.map(async (item) => await fetchProductData(item))
+          user.wishlist.map(async (item) => await fetchProductData(item)),
         );
       fetch_data().then((data) => {
         setWishlistItems(data);

@@ -13,6 +13,7 @@ export async function addTowishList(userId, productId) {
     wishlist: arrayUnion(productId),
   });
 }
+
 export async function removeFromWishlist(userId, productId) {
   const docRef = doc(db, "users", userId);
   await updateDoc(docRef, {
@@ -27,7 +28,7 @@ export async function addToCart(userId, productId, amount = 1, variants) {
   const existingItem = cart.find(
     (item) =>
       item.id === productId &&
-      JSON.stringify(item.variants) === JSON.stringify(variants)
+      JSON.stringify(item.variants) === JSON.stringify(variants),
   );
 
   if (existingItem) {
@@ -39,38 +40,43 @@ export async function addToCart(userId, productId, amount = 1, variants) {
   }
 }
 
-export async function addToInterest(userId, interest) {
-  const docRef = doc(db, "users", userId);
+export async function addToInterest(user, interest) {
+  const docRef = doc(db, "users", user.uid);
 
-  let interestsToAdd = Array.isArray(interest)
-    ? interest.flatMap((item) =>
-        typeof item === "string" ? item.split(/\s+/) : item
-      )
-    : typeof interest === "string"
-    ? interest.split(/\s+/)
-    : [interest];
-
-  interestsToAdd = [...new Set(interestsToAdd)].filter(Boolean);
-
-  // Get the current interests
-  const docSnap = await getDoc(docRef);
-  const currentInterests = docSnap.data()?.interest || [];
-
-  // Filter out interests that already exist
-  const newInterests = interestsToAdd.filter(
-    (item) => !currentInterests.includes(item)
+  // Normalize interests to an array of unique, non-empty strings
+  const interestsToAdd = Array.from(
+    new Set(
+      (Array.isArray(interest) ? interest : [interest])
+        .flatMap((item) =>
+          typeof item === "string" ? item.split(/\s+/) : item,
+        )
+        .filter(Boolean), // Remove falsy values
+    ),
   );
 
-  if (newInterests.length > 0) {
-    await updateDoc(docRef, {
-      interest: arrayUnion(...newInterests),
-    });
-    // console.log("ADDED NEW INTERESTS", newInterests);
-    return true;
-  } else {
-    // console.log("NO NEW INTERESTS ADDED");
+  if (interestsToAdd.length === 0) {
+    // No valid interests to add
     return false;
   }
+
+  // Get current interests directly from the passed user object
+  const currentInterests = user.interests || [];
+
+  // Find interests that are not already in the user's current interests
+  // const newInterests = interestsToAdd.filter(
+  //   (item) => !currentInterests.includes(item),
+  // );
+
+  if (interestsToAdd.length > 0) {
+    // Update the document with new interests
+    await updateDoc(docRef, {
+      interests: arrayUnion(...interestsToAdd),
+    });
+    return true;
+  }
+
+  // No new interests to add
+  return false;
 }
 
 export function removeToCart(userId, productId, amount = 0) {}
