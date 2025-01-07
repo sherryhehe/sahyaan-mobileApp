@@ -45,7 +45,7 @@ export default function RootLayout() {
     return <Loading />;
   }
   return (
-    <StripeProvider publishableKey="pk_test_51NZzZSA3OkimDdmQF6wEI6eTNe5uhEnI53L4H0woL00OhkCH7cbLS7YYYpmsK0V7yUXhHp5QhWVAe3rTWNUAmKjR00kY8Pt28u">
+    <StripeProvider publishableKey={process.env.STRIPE_KEY}>
       <SafeAreaProvider>
         <UserProvider>
           <Stack screenOptions={{ headerShown: false }}>
