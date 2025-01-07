@@ -56,7 +56,7 @@ export default function Signup() {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
       const user = userCredential.user;
 
@@ -93,7 +93,7 @@ export default function Signup() {
           interests: [],
           country: response.data.countryCode.toLowerCase(),
         },
-        false
+        false,
       );
       router.replace("/explore");
     } catch (err) {
